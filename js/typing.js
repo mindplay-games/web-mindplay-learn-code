@@ -31,6 +31,7 @@ const TYPING_SETS = {
     { target: "[]", translation: "סוגריים מרובעים — משמשים לרשימות", hint: "עברו למקלדת באנגלית" },
     { target: "{}", translation: "סוגריים מסולסלים — משמשים למילונים ול־f-string", hint: "במקלדת אנגלית: Shift יחד עם [ או ]" },
     { target: "_", translation: "קו תחתון — מחבר מילים בשמות משתנים", hint: "במקלדת אנגלית: Shift יחד עם -" },
+    { type: "activity", activity: "tabKey", target: "Tab  /  ↹  /  ⇥", keys: ["Tab"], translation: "מכירים את מקש ההזחה ואת הסימנים שמופיעים עליו" },
     { type: "activity", activity: "selectAll", target: "Ctrl + A", keys: ["Ctrl", "A"], translation: "בחירת כל הקוד בלחיצה אחת" },
     { type: "activity", activity: "copyPaste", target: "Ctrl + C  →  Ctrl + V", keys: ["Ctrl", "C", "V"], translation: "העתקה והדבקה בלי להקליד מחדש" },
     { type: "activity", activity: "undo", target: "Ctrl + Z", keys: ["Ctrl", "Z"], translation: "ביטול הפעולה האחרונה ותיקון טעות" },
@@ -111,13 +112,14 @@ function updateStats() {
 }
 function keyboardHtml(expectedKeys) {
   const expected = new Set(expectedKeys.map(key => key.toLowerCase()));
-  const keys = ["Ctrl", "Z", "X", "C", "V", "A", "S", "D", "F"];
+  const keys = ["Tab", "A", "S", "D", "F", "Ctrl", "Z", "X", "C", "V"];
   return `<div class="keyboardGuide" aria-label="מקלדת עזר">${keys.map(key =>
-    `<span class="keyboardKey ${expected.has(key.toLowerCase()) ? "expected" : ""}" data-key="${key.toLowerCase()}">${key}</span>`
+    `<span class="keyboardKey ${["Tab", "Ctrl"].includes(key) ? "wideKey" : ""} ${expected.has(key.toLowerCase()) ? "expected" : ""}" data-key="${key.toLowerCase()}">${key === "Tab" ? "Tab ↹" : key}</span>`
   ).join("")}</div>`;
 }
-function setPressedKey(key, pressed) {
-  const normalized = key === "Control" || key === "Meta" ? "ctrl" : key.toLowerCase();
+function setPressedKey(key, code, pressed) {
+  const normalized = key === "Control" || key === "Meta" ? "ctrl" :
+    (code?.startsWith("Key") ? code.slice(3).toLowerCase() : key.toLowerCase());
   elements.shortcutActivity.querySelector(`[data-key="${normalized}"]`)?.classList.toggle("pressed", pressed);
 }
 function activityFeedback(message, isError = false) {
@@ -138,17 +140,25 @@ function finishActivity(message) {
 }
 function addShortcutListener(element, handler) {
   element.addEventListener("keydown", event => {
-    setPressedKey(event.key, true);
+    setPressedKey(event.key, event.code, true);
     if (event.ctrlKey || event.metaKey) event.preventDefault();
     handler(event);
   });
-  element.addEventListener("keyup", event => setPressedKey(event.key, false));
+  element.addEventListener("keyup", event => setPressedKey(event.key, event.code, false));
+}
+function isEnglishShortcutKey(event, expectedKey) {
+  const matches = event.key.toLowerCase() === expectedKey;
+  if (!matches && event.code === `Key${expectedKey.toUpperCase()}`) {
+    activityFeedback("המקש הנכון נמצא, אבל המקלדת אינה באנגלית. העבירו ל־ENG או EN ונסו שוב.", true);
+  }
+  return matches;
 }
 function renderShortcutActivity(exercise) {
   hintLevel = 0;
   const instructions = {
+    tabKey: "מצאו במקלדת את המקש שעליו כתוב Tab, ↹ או ⇥ ולחצו עליו פעם אחת.",
     selectAll: "בחרו את כל שלוש שורות הקוד באמצעות קיצור המקלדת.",
-    copyPaste: "העתיקו את השורה המסומנת והדביקו אותה בתיבה הריקה.",
+    copyPaste: "שלב 1: העתיקו את השורה המסומנת עם Ctrl + C. שלב 2: הדביקו את העותק בתיבה הריקה עם Ctrl + V.",
     undo: "יש טעות מיותרת בסוף הקוד. בטלו את הפעולה האחרונה.",
     save: "יש שינויים שלא נשמרו. שמרו אותם בעזרת קיצור המקלדת.",
   };
@@ -161,20 +171,31 @@ function renderShortcutActivity(exercise) {
     hintLevel += 1;
     const firstKey = exercise.keys[0];
     activityFeedback(hintLevel === 1
-      ? `חפשו את ${firstKey} בפינה השמאלית התחתונה של המקלדת.`
+      ? (firstKey === "Tab" ? "חפשו בצד שמאל מקש רחב שעליו כתוב Tab, ↹ או ⇥." : `חפשו את ${firstKey} בפינה השמאלית התחתונה של המקלדת.`)
       : `החזיקו את ${firstKey}, ובזמן שהוא לחוץ הקישו ${exercise.keys.slice(1).join(" ואז ")}.`);
     if (hintLevel > 1) elements.shortcutActivity.querySelectorAll(".keyboardKey.expected").forEach(key => key.classList.add("hinted"));
   });
 
-  if (exercise.activity === "selectAll") {
+  if (exercise.activity === "tabKey") {
+    workspace.innerHTML = '<div class="tabPractice"><span class="tabKeyLarge">Tab</span><span class="tabKeyLarge">↹</span><span class="tabKeyLarge">⇥</span><p>הכיתוב משתנה בין מקלדות, אבל זה אותו מקש. הוא נמצא בדרך כלל משמאל לאות Q.</p></div><textarea class="activityEditor tabFocusTarget" rows="2" readonly placeholder="לחצו כאן ואז הקישו Tab"></textarea>';
+    const editor = workspace.querySelector("textarea");
+    addShortcutListener(editor, event => {
+      if (event.key === "Tab") {
+        event.preventDefault(); finishActivity("מצוין! מצאתם את Tab — המקש שמשמש אותנו ליצירת הזחה בפייתון 🎉");
+      } else if (!["Control", "Meta", "Shift", "Alt"].includes(event.key)) {
+        recordShortcutAttempt(false); activityFeedback(`לחצתם ${event.key}. חפשו את Tab, ↹ או ⇥ בצד שמאל.`, true);
+      }
+    });
+    editor.focus();
+  } else if (exercise.activity === "selectAll") {
     workspace.innerHTML = '<textarea class="activityEditor" rows="4" spellcheck="false">name = "Noa"\nscore = 10\nprint(name, score)</textarea>';
     const editor = workspace.querySelector("textarea");
     addShortcutListener(editor, event => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
+      if ((event.ctrlKey || event.metaKey) && isEnglishShortcutKey(event, "a")) {
         editor.select();
         const selectedAll = editor.selectionStart === 0 && editor.selectionEnd === editor.value.length;
         if (selectedAll) finishActivity("הצלחתם! כל הקוד נבחר בבת אחת 🎉");
-      } else if (!["Control", "Meta"].includes(event.key)) {
+      } else if (!["Control", "Meta"].includes(event.key) && event.code !== "KeyA") {
         recordShortcutAttempt(false); activityFeedback(`לחצתם ${event.key}, אבל המטרה היא לבחור את כל הקוד.`, true);
       }
     });
@@ -186,16 +207,16 @@ function renderShortcutActivity(exercise) {
     const destination = workspace.querySelector(".activityDestination");
     source.select();
     addShortcutListener(source, event => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c" && source.selectionStart === 0 && source.selectionEnd === source.value.length) {
+      if ((event.ctrlKey || event.metaKey) && isEnglishShortcutKey(event, "c") && source.selectionStart === 0 && source.selectionEnd === source.value.length) {
         activityBuffer = source.value; recordShortcutAttempt(true); activityFeedback("הועתק! עכשיו עברו לתיבה הריקה ולחצו Ctrl + V."); destination.focus();
-      } else if (!["Control", "Meta"].includes(event.key)) {
+      } else if (!["Control", "Meta"].includes(event.key) && event.code !== "KeyC") {
         recordShortcutAttempt(false); activityFeedback("קודם העתיקו את השורה המסומנת בעזרת Ctrl + C.", true);
       }
     });
     addShortcutListener(destination, event => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v" && activityBuffer) {
+      if ((event.ctrlKey || event.metaKey) && isEnglishShortcutKey(event, "v") && activityBuffer) {
         destination.value = activityBuffer; finishActivity("מעולה! העתקתם והדבקתם את הקוד בלי לכתוב אותו מחדש 🎉");
-      } else if (!["Control", "Meta"].includes(event.key)) {
+      } else if (!["Control", "Meta"].includes(event.key) && event.code !== "KeyV") {
         recordShortcutAttempt(false); activityFeedback("אין צורך להקליד מחדש — השתמשו בקיצור ההדבקה.", true);
       }
     });
@@ -203,10 +224,10 @@ function renderShortcutActivity(exercise) {
     workspace.innerHTML = '<textarea class="activityEditor" rows="2" spellcheck="false">print("Hello")xxxx</textarea><span class="saveState badState">יש טעות בקוד</span>';
     const editor = workspace.querySelector("textarea");
     addShortcutListener(editor, event => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+      if ((event.ctrlKey || event.metaKey) && isEnglishShortcutKey(event, "z")) {
         editor.value = 'print("Hello")'; workspace.querySelector(".saveState").textContent = "הטעות בוטלה ✓";
         finishActivity("כל הכבוד! ביטלתם את הפעולה האחרונה והקוד תוקן 🎉");
-      } else if (!["Control", "Meta"].includes(event.key)) {
+      } else if (!["Control", "Meta"].includes(event.key) && event.code !== "KeyZ") {
         recordShortcutAttempt(false); activityFeedback("אל תמחקו ידנית — נסו לבטל את הפעולה האחרונה.", true);
       }
     });
@@ -215,10 +236,10 @@ function renderShortcutActivity(exercise) {
     workspace.innerHTML = '<textarea class="activityEditor" rows="2" spellcheck="false">score = 10\nprint(score)</textarea><span class="saveState unsaved">● יש שינויים שלא נשמרו</span>';
     const editor = workspace.querySelector("textarea");
     addShortcutListener(editor, event => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+      if ((event.ctrlKey || event.metaKey) && isEnglishShortcutKey(event, "s")) {
         const state = workspace.querySelector(".saveState"); state.textContent = "✓ נשמר בהצלחה"; state.className = "saveState saved";
         finishActivity("מצוין! שמרתם את השינויים בלי לעזוב את המקלדת 🎉");
-      } else if (!["Control", "Meta"].includes(event.key)) {
+      } else if (!["Control", "Meta"].includes(event.key) && event.code !== "KeyS") {
         recordShortcutAttempt(false); activityFeedback("השינויים עדיין לא נשמרו. נסו את קיצור השמירה.", true);
       }
     });

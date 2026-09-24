@@ -944,7 +944,7 @@ html[data-theme="light"] .typingTab[aria-selected="true"] { background: var(--ye
 .shortcutInstruction { margin: 0 0 14px; color: var(--text); line-height: 1.7; }
 .keyboardGuide { direction: ltr; display: flex; align-items: flex-end; justify-content: center; flex-wrap: wrap; gap: 7px; margin: 14px 0 18px; }
 .keyboardKey { min-width: 42px; height: 42px; padding: 0 10px; display: inline-grid; place-items: center; border: 1px solid rgba(255,255,255,.16); border-bottom-width: 4px; border-radius: 7px; background: #171B30; color: #7C89A8; font: 700 13px ui-monospace, Menlo, Consolas, monospace; transition: transform .12s, border-color .12s, box-shadow .12s, color .12s; }
-.keyboardKey:first-child { min-width: 68px; margin-inline-end: 10px; }
+.keyboardKey.wideKey { min-width: 68px; margin-inline: 5px; }
 .keyboardKey.expected { color: var(--yellow); border-color: rgba(255,229,0,.55); }
 .keyboardKey.hinted { animation: keyHint 1s ease-in-out infinite; }
 .keyboardKey.pressed { transform: translateY(3px); border-bottom-width: 1px; color: #07110C; background: var(--good); border-color: var(--good); box-shadow: 0 0 18px rgba(0,255,136,.5); }
@@ -966,5 +966,26 @@ html[data-theme="light"] .activityEditor { background: #FFFFFF; color: var(--tex
 @media (max-width: 600px) {
   .shortcutActivity { padding: 12px; }
   .keyboardKey { min-width: 34px; height: 38px; padding: 0 7px; }
-  .keyboardKey:first-child { min-width: 58px; margin-inline-end: 2px; }
+  .keyboardKey.wideKey { min-width: 58px; margin-inline: 2px; }
+}
+
+/* ===== Intro lesson: language, copy/paste and Tab ===== */
+.typingLessonIntro { display: grid; gap: 14px; }
+.lessonNotice { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: var(--r-lg); }
+.languageNotice { background: rgba(255,184,0,.08); border: 1px solid rgba(255,184,0,.3); }
+.lessonNoticeIcon { display: grid; place-items: center; flex: 0 0 52px; height: 42px; border: 2px solid var(--yellow); border-radius: 8px; color: var(--yellow); font: 800 16px ui-monospace, Menlo, monospace; }
+.lessonNotice p, .shortcutExplanation p, .tabExplanation p { margin: 4px 0 0; color: var(--muted); line-height: 1.65; }
+.shortcutExplanation { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface2); }
+.lessonArrow { color: var(--teal); font-size: 24px; }
+.tabExplanation { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 14px; border: 1px solid var(--tealBorder); border-radius: var(--r-lg); background: var(--tealBg); }
+.tabExplanation p { flex: 1 1 320px; }
+.tabKeyExample, .tabKeyLarge { display: inline-grid; place-items: center; min-width: 52px; height: 38px; border: 1px solid var(--teal); border-bottom-width: 4px; border-radius: 7px; background: #171B30; color: var(--teal); font: 700 14px ui-monospace, Menlo, monospace; }
+.tabPractice { text-align: center; padding: 10px; color: var(--muted); }
+.tabKeyLarge { min-width: 70px; height: 48px; margin: 4px; font-size: 18px; }
+.tabPractice p { margin: 10px 0 0; }
+html[data-theme="light"] .tabKeyExample, html[data-theme="light"] .tabKeyLarge { background: #FFFFFF; }
+@media (max-width: 600px) {
+  .shortcutExplanation { grid-template-columns: 1fr; }
+  .lessonArrow { transform: rotate(-90deg); text-align: center; }
+  .lessonNotice { align-items: flex-start; }
 }
