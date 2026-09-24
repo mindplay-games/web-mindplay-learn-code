@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>אנגלית והקלדה בפייתון</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
+  <script>document.documentElement.setAttribute("data-theme",localStorage.getItem("mindplay-theme")||"dark");</script>
+</head>
+<body data-group="typing">
+  <header class="top">
+    <button id="themeToggle" aria-label="החלף ערכת צבעים" title="החלף ערכת צבעים"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <a class="link topBack" href="./index.html">← חזרה</a>
+    <h1>אנגלית והקלדה בפייתון ⌨️</h1>
+    <p class="sub typingIntro">מתרגלים פקודות פייתון, שורות קוד, תווים מיוחדים וקיצורי מקלדת — בדיוק כמו שמתכנתים משתמשים בהם.</p>
+  </header>
+  <main class="container typingContainer">
+    <section class="card">
+      <h2>בחרו מסלול</h2>
+      <div class="typingTabs" role="tablist" aria-label="סוג התרגול">
+        <button class="btn typingTab" type="button" role="tab" data-mode="commands" aria-selected="true">פקודות פייתון</button>
+        <button class="btn typingTab" type="button" role="tab" data-mode="code" aria-selected="false">שורות קוד</button>
+        <button class="btn typingTab" type="button" role="tab" data-mode="keyboard" aria-selected="false">קיצורים ותווים</button>
+      </div>
+    </section>
+    <section class="typingStats" aria-label="נתוני התרגול">
+      <div class="typingStat"><strong id="exerciseCount">1/8</strong><span>תרגיל</span></div>
+      <div class="typingStat"><strong id="accuracy">100%</strong><span>דיוק</span></div>
+      <div class="typingStat"><strong id="speed">0</strong><span>תווים בדקה</span></div>
+      <div class="typingStat"><strong id="streak">0 🔥</strong><span>רצף</span></div>
+    </section>
+    <section class="card card--practice">
+      <h2 id="practiceTitle">הקלידו את הפקודה</h2>
+      <div class="typingPrompt">
+        <div id="translation" class="typingTranslation"></div>
+        <div id="target" class="typingTarget" aria-live="polite"></div>
+      </div>
+      <label id="inputLabel" class="mini" for="typingInput">התחילו להקליד כאן:</label>
+      <textarea id="typingInput" class="typingInput" rows="2" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="typingMessage"></textarea>
+      <p id="typingMessage" class="typingMessage" aria-live="polite">הדיוק חשוב יותר מהמהירות 🌟</p>
+      <div class="typingProgress" aria-hidden="true"><div id="progressBar" class="typingProgressBar"></div></div>
+      <div class="typingActions">
+        <button id="restartBtn" class="btn btnGhost" type="button">התחלה מחדש ↻</button>
+        <button id="nextTypingBtn" class="btn btnGreen" type="button" disabled>התרגיל הבא ←</button>
+      </div>
+    </section>
+  </main>
+  <script src="js/typing.js"></script>
+  <script src="js/theme.js"></script>
+</body>
+</html>
