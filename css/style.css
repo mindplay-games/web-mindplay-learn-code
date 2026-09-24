@@ -898,3 +898,94 @@ html[data-theme="light"] .dot.current {
   box-shadow: 0 0 0 3px var(--yellowBg);
   transform: scale(1.3);
 }
+
+/* ===== English + Python typing practice ===== */
+.catTile[data-variant="typing"]::before { background: #FF4FD8; box-shadow: 0 0 10px #FF4FD8, 0 0 20px #FF4FD8; }
+.catTile[data-variant="typing"] .catIcon { background: rgba(255,79,216,.07); border-color: rgba(255,79,216,.25); box-shadow: 0 0 12px rgba(255,79,216,.1); }
+.typingContainer { max-width: 980px; }
+.typingIntro { text-align: center; margin: 10px auto 0; max-width: 720px; }
+.typingTabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.typingTab[aria-selected="true"] { color: #0A0A0F; background: var(--yellow); border-color: var(--yellow); }
+.typingTab[aria-selected="true"]:hover { color: #0A0A0F; background: var(--yellowHover); border-color: var(--yellow); }
+.typingStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.typingStat { padding: 12px; border: 1px solid var(--border); border-radius: var(--r-lg); background: rgba(10,12,28,.7); text-align: center; }
+.typingStat strong { display: block; color: var(--teal); font-size: 22px; margin-bottom: 3px; }
+.typingStat span { color: var(--muted); font-size: 12px; }
+.typingPrompt { padding: 22px; margin-bottom: 14px; border: 1px solid var(--accentBorder); border-radius: var(--r-lg); background: #080C1A; direction: ltr; text-align: left; }
+.typingTranslation { direction: rtl; text-align: center; color: var(--muted); font-size: 15px; margin-bottom: 14px; }
+.typingTarget { min-height: 38px; text-align: center; font: 700 clamp(20px, 4vw, 30px)/1.5 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .7px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.typingTarget .typed { color: var(--good); }
+.typingTarget .current { color: var(--yellow); border-bottom: 2px solid var(--yellow); animation: typingCursor 1s step-end infinite; }
+.typingTarget .remaining { color: #7C89A8; }
+.typingTarget .indentSpace { color: #FF8C00; text-shadow: 0 0 8px rgba(255,140,0,.45); }
+@keyframes typingCursor { 50% { border-color: transparent; } }
+.typingInput { width: 100%; margin-top: 8px; min-height: 56px; padding: 14px 16px; border: 2px solid var(--teal); border-radius: var(--r-lg); background: #030610; color: #fff; direction: ltr; text-align: left; font: 17px/1.5 ui-monospace, Menlo, Consolas, monospace; caret-color: var(--yellow); resize: none; }
+.typingInput:focus { outline: none; box-shadow: 0 0 24px rgba(0,212,255,.25); }
+.typingInput.hasError { border-color: var(--bad); box-shadow: 0 0 18px rgba(255,68,102,.2); }
+.typingMessage { min-height: 25px; margin: 12px 0 0; text-align: center; font-weight: 700; }
+.typingActions { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+.typingProgress { height: 7px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; margin-top: 16px; }
+.typingProgressBar { width: 0; height: 100%; background: linear-gradient(90deg, var(--teal), var(--yellow)); transition: width .25s ease; }
+html[data-theme="light"] .catTile[data-variant="typing"]::before { background: #DB2777; box-shadow: none; }
+html[data-theme="light"] .catTile[data-variant="typing"] .catIcon { background: rgba(219,39,119,.10); border-color: rgba(219,39,119,.30); box-shadow: none; }
+html[data-theme="light"] .typingStat { background: var(--surface); }
+html[data-theme="light"] .typingPrompt { background: #F7FBFB; }
+html[data-theme="light"] .typingInput { background: #FFFFFF; color: var(--text); }
+html[data-theme="light"] .typingTab[aria-selected="true"] { background: var(--yellow); color: var(--yellowText); }
+@media (max-width: 600px) {
+  .typingStats { grid-template-columns: repeat(2, 1fr); }
+  .typingPrompt { padding: 16px 12px; }
+  .typingActions { flex-direction: column; }
+  .typingActions .btn { width: 100%; }
+}
+
+/* ===== Guided keyboard-shortcut activities ===== */
+.shortcutActivity { margin: 14px 0; padding: 16px; border: 1px solid var(--border); border-radius: var(--r-lg); background: rgba(3,6,16,.55); }
+.shortcutInstruction { margin: 0 0 14px; color: var(--text); line-height: 1.7; }
+.keyboardGuide { direction: ltr; display: flex; align-items: flex-end; justify-content: center; flex-wrap: wrap; gap: 7px; margin: 14px 0 18px; }
+.keyboardKey { min-width: 42px; height: 42px; padding: 0 10px; display: inline-grid; place-items: center; border: 1px solid rgba(255,255,255,.16); border-bottom-width: 4px; border-radius: 7px; background: #171B30; color: #7C89A8; font: 700 13px ui-monospace, Menlo, Consolas, monospace; transition: transform .12s, border-color .12s, box-shadow .12s, color .12s; }
+.keyboardKey.wideKey { min-width: 68px; margin-inline: 5px; }
+.keyboardKey.expected { color: var(--yellow); border-color: rgba(255,229,0,.55); }
+.keyboardKey.hinted { animation: keyHint 1s ease-in-out infinite; }
+.keyboardKey.pressed { transform: translateY(3px); border-bottom-width: 1px; color: #07110C; background: var(--good); border-color: var(--good); box-shadow: 0 0 18px rgba(0,255,136,.5); }
+@keyframes keyHint { 50% { box-shadow: 0 0 20px rgba(255,229,0,.45); transform: translateY(-2px); } }
+.activityWorkspace { display: grid; gap: 10px; margin-bottom: 12px; }
+.activityWorkspace label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
+.activityEditor { width: 100%; min-height: 68px; padding: 12px; border: 1px solid var(--tealBorder); border-radius: var(--r-sm); background: #030610; color: #B8F0FF; direction: ltr; text-align: left; font: 15px/1.6 ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
+.activityEditor:focus { outline: 2px solid var(--teal); outline-offset: 2px; }
+.activitySource::selection { color: #071018; background: var(--yellow); }
+.saveState { display: inline-flex; width: fit-content; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.saveState.unsaved, .saveState.badState { color: var(--warn); background: rgba(255,184,0,.1); }
+.saveState.saved { color: var(--good); background: rgba(0,255,136,.1); }
+.shortcutHintBtn { display: block; margin-inline-start: auto; }
+html[data-theme="light"] .shortcutActivity { background: var(--surface2); }
+html[data-theme="light"] .keyboardKey { background: #FFFFFF; color: var(--muted); border-color: #C7D8D8; }
+html[data-theme="light"] .keyboardKey.expected { color: #9A7200; border-color: #E4B900; }
+html[data-theme="light"] .keyboardKey.pressed { background: var(--good); color: #FFFFFF; border-color: var(--good); }
+html[data-theme="light"] .activityEditor { background: #FFFFFF; color: var(--text); }
+@media (max-width: 600px) {
+  .shortcutActivity { padding: 12px; }
+  .keyboardKey { min-width: 34px; height: 38px; padding: 0 7px; }
+  .keyboardKey.wideKey { min-width: 58px; margin-inline: 2px; }
+}
+
+/* ===== Intro lesson: language, copy/paste and Tab ===== */
+.typingLessonIntro { display: grid; gap: 14px; }
+.lessonNotice { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: var(--r-lg); }
+.languageNotice { background: rgba(255,184,0,.08); border: 1px solid rgba(255,184,0,.3); }
+.lessonNoticeIcon { display: grid; place-items: center; flex: 0 0 52px; height: 42px; border: 2px solid var(--yellow); border-radius: 8px; color: var(--yellow); font: 800 16px ui-monospace, Menlo, monospace; }
+.lessonNotice p, .shortcutExplanation p, .tabExplanation p { margin: 4px 0 0; color: var(--muted); line-height: 1.65; }
+.shortcutExplanation { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface2); }
+.lessonArrow { color: var(--teal); font-size: 24px; }
+.tabExplanation { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 14px; border: 1px solid var(--tealBorder); border-radius: var(--r-lg); background: var(--tealBg); }
+.tabExplanation p { flex: 1 1 320px; }
+.tabKeyExample, .tabKeyLarge { display: inline-grid; place-items: center; min-width: 52px; height: 38px; border: 1px solid var(--teal); border-bottom-width: 4px; border-radius: 7px; background: #171B30; color: var(--teal); font: 700 14px ui-monospace, Menlo, monospace; }
+.tabPractice { text-align: center; padding: 10px; color: var(--muted); }
+.tabKeyLarge { min-width: 70px; height: 48px; margin: 4px; font-size: 18px; }
+.tabPractice p { margin: 10px 0 0; }
+html[data-theme="light"] .tabKeyExample, html[data-theme="light"] .tabKeyLarge { background: #FFFFFF; }
+@media (max-width: 600px) {
+  .shortcutExplanation { grid-template-columns: 1fr; }
+  .lessonArrow { transform: rotate(-90deg); text-align: center; }
+  .lessonNotice { align-items: flex-start; }
+}
