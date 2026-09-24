@@ -898,3 +898,43 @@ html[data-theme="light"] .dot.current {
   box-shadow: 0 0 0 3px var(--yellowBg);
   transform: scale(1.3);
 }
+
+/* ===== English + Python typing practice ===== */
+.catTile[data-variant="typing"]::before { background: #FF4FD8; box-shadow: 0 0 10px #FF4FD8, 0 0 20px #FF4FD8; }
+.catTile[data-variant="typing"] .catIcon { background: rgba(255,79,216,.07); border-color: rgba(255,79,216,.25); box-shadow: 0 0 12px rgba(255,79,216,.1); }
+.typingContainer { max-width: 980px; }
+.typingIntro { text-align: center; margin: 10px auto 0; max-width: 720px; }
+.typingTabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.typingTab[aria-selected="true"] { color: #0A0A0F; background: var(--yellow); border-color: var(--yellow); }
+.typingTab[aria-selected="true"]:hover { color: #0A0A0F; background: var(--yellowHover); border-color: var(--yellow); }
+.typingStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.typingStat { padding: 12px; border: 1px solid var(--border); border-radius: var(--r-lg); background: rgba(10,12,28,.7); text-align: center; }
+.typingStat strong { display: block; color: var(--teal); font-size: 22px; margin-bottom: 3px; }
+.typingStat span { color: var(--muted); font-size: 12px; }
+.typingPrompt { padding: 22px; margin-bottom: 14px; border: 1px solid var(--accentBorder); border-radius: var(--r-lg); background: #080C1A; direction: ltr; text-align: left; }
+.typingTranslation { direction: rtl; text-align: center; color: var(--muted); font-size: 15px; margin-bottom: 14px; }
+.typingTarget { min-height: 38px; text-align: center; font: 700 clamp(20px, 4vw, 30px)/1.5 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .7px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.typingTarget .typed { color: var(--good); }
+.typingTarget .current { color: var(--yellow); border-bottom: 2px solid var(--yellow); animation: typingCursor 1s step-end infinite; }
+.typingTarget .remaining { color: #7C89A8; }
+.typingTarget .indentSpace { color: #FF8C00; text-shadow: 0 0 8px rgba(255,140,0,.45); }
+@keyframes typingCursor { 50% { border-color: transparent; } }
+.typingInput { width: 100%; margin-top: 8px; min-height: 56px; padding: 14px 16px; border: 2px solid var(--teal); border-radius: var(--r-lg); background: #030610; color: #fff; direction: ltr; text-align: left; font: 17px/1.5 ui-monospace, Menlo, Consolas, monospace; caret-color: var(--yellow); resize: none; }
+.typingInput:focus { outline: none; box-shadow: 0 0 24px rgba(0,212,255,.25); }
+.typingInput.hasError { border-color: var(--bad); box-shadow: 0 0 18px rgba(255,68,102,.2); }
+.typingMessage { min-height: 25px; margin: 12px 0 0; text-align: center; font-weight: 700; }
+.typingActions { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+.typingProgress { height: 7px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; margin-top: 16px; }
+.typingProgressBar { width: 0; height: 100%; background: linear-gradient(90deg, var(--teal), var(--yellow)); transition: width .25s ease; }
+html[data-theme="light"] .catTile[data-variant="typing"]::before { background: #DB2777; box-shadow: none; }
+html[data-theme="light"] .catTile[data-variant="typing"] .catIcon { background: rgba(219,39,119,.10); border-color: rgba(219,39,119,.30); box-shadow: none; }
+html[data-theme="light"] .typingStat { background: var(--surface); }
+html[data-theme="light"] .typingPrompt { background: #F7FBFB; }
+html[data-theme="light"] .typingInput { background: #FFFFFF; color: var(--text); }
+html[data-theme="light"] .typingTab[aria-selected="true"] { background: var(--yellow); color: var(--yellowText); }
+@media (max-width: 600px) {
+  .typingStats { grid-template-columns: repeat(2, 1fr); }
+  .typingPrompt { padding: 16px 12px; }
+  .typingActions { flex-direction: column; }
+  .typingActions .btn { width: 100%; }
+}
