@@ -16,13 +16,12 @@ const TYPING_SETS = {
   code: [
     { target: 'print("Hello!")', translation: "הדפיסו ברכה למסך — בתוך הטקסט מותר להשתמש באות גדולה או קטנה" },
     { target: "name = input()", translation: "קבלו שם מהמשתמש ושמרו אותו" },
-    { target: "if score > 10:", translation: "בדקו אם הניקוד גדול מ־10" },
-    { target: "for i in range(5):", translation: "חזרו על פעולה 5 פעמים" },
-    { target: "    print(i)", translation: "הדפיסו את i עם הזחה של 4 רווחים" },
-    { target: "numbers.append(7)", translation: "הוסיפו את 7 לרשימה" },
-    { target: "def greet(name):", translation: "הגדירו פונקציית ברכה" },
-    { target: 'print(f"Hello, {name}!")', translation: "הדפיסו ברכה שמשלבת משתנה" },
-    { target: "return result", translation: "החזירו את התוצאה מהפונקציה" },
+    { target: 'if score > 10:\n    print("Great!")', translation: "תנאי ושורה מוזחת", hint: "אחרי Enter לחצו Tab כדי ליצור הזחה של 4 רווחים" },
+    { target: "for i in range(5):\n    print(i)", translation: "לולאה והפעולה שמתבצעת בתוכה", hint: "הנקודות · מסמנות את ארבעת הרווחים בתחילת השורה" },
+    { target: "while lives > 0:\n    lives = lives - 1", translation: "לולאת while עם עדכון משתנה מוזח", hint: "השורה השנייה שייכת ללולאה ולכן מתחילה ב־4 רווחים" },
+    { target: 'def greet(name):\n    print(f"Hello, {name}!")', translation: "פונקציה עם פקודה בתוכה", hint: "גוף הפונקציה חייב להיות מוזח ב־4 רווחים" },
+    { target: "if player_ready:\n    if lives > 0:\n        print(\"Start!\")", translation: "תנאי בתוך תנאי — הזחה כפולה", hint: "השורה האחרונה נמצאת בתוך שני תנאים ולכן מתחילה ב־8 רווחים" },
+    { target: "def double(number):\n    result = number * 2\n    return result", translation: "פונקציה עם שתי שורות מוזחות", hint: "שתי השורות שייכות לפונקציה וחייבות להיות באותה הזחה" },
   ],
   keyboard: [
     { target: "()", translation: "סוגריים עגולים — משמשים להפעלת פונקציות", hint: "הקלידו סוגר פותח וסוגר סוגר" },
@@ -32,12 +31,10 @@ const TYPING_SETS = {
     { target: "[]", translation: "סוגריים מרובעים — משמשים לרשימות", hint: "עברו למקלדת באנגלית" },
     { target: "{}", translation: "סוגריים מסולסלים — משמשים למילונים ול־f-string", hint: "במקלדת אנגלית: Shift יחד עם [ או ]" },
     { target: "_", translation: "קו תחתון — מחבר מילים בשמות משתנים", hint: "במקלדת אנגלית: Shift יחד עם -" },
-    { type: "shortcut", target: "Ctrl + C", key: "c", translation: "העתקה" },
-    { type: "shortcut", target: "Ctrl + V", key: "v", translation: "הדבקה" },
-    { type: "shortcut", target: "Ctrl + S", key: "s", translation: "שמירת הקובץ" },
-    { type: "shortcut", target: "Ctrl + Z", key: "z", translation: "ביטול הפעולה האחרונה" },
-    { type: "shortcut", target: "Ctrl + A", key: "a", translation: "בחירת הכול" },
-    { type: "shortcut", target: "Ctrl + F", key: "f", translation: "חיפוש בקובץ" },
+    { type: "activity", activity: "selectAll", target: "Ctrl + A", keys: ["Ctrl", "A"], translation: "בחירת כל הקוד בלחיצה אחת" },
+    { type: "activity", activity: "copyPaste", target: "Ctrl + C  →  Ctrl + V", keys: ["Ctrl", "C", "V"], translation: "העתקה והדבקה בלי להקליד מחדש" },
+    { type: "activity", activity: "undo", target: "Ctrl + Z", keys: ["Ctrl", "Z"], translation: "ביטול הפעולה האחרונה ותיקון טעות" },
+    { type: "activity", activity: "save", target: "Ctrl + S", keys: ["Ctrl", "S"], translation: "שמירת השינויים בקובץ" },
   ],
 };
 
@@ -49,7 +46,7 @@ const elements = {
   restart: document.getElementById("restartBtn"), count: document.getElementById("exerciseCount"),
   accuracy: document.getElementById("accuracy"), speed: document.getElementById("speed"),
   streak: document.getElementById("streak"), progress: document.getElementById("progressBar"),
-  title: document.getElementById("practiceTitle"),
+  title: document.getElementById("practiceTitle"), shortcutActivity: document.getElementById("shortcutActivity"),
 };
 let mode = "commands";
 let index = 0;
@@ -59,6 +56,8 @@ let streak = 0;
 let startedAt = null;
 let completed = false;
 let previousValue = "";
+let activityBuffer = "";
+let hintLevel = 0;
 
 function escapeHtml(value) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
@@ -80,14 +79,24 @@ function charactersMatch(actual, expected, position, target) {
 function prefixMatches(value, target) {
   return value.length <= target.length && [...value].every((character, position) => charactersMatch(character, target[position], position, target));
 }
+function renderSegment(segment, startPosition, target) {
+  return [...segment].map((character, offset) => {
+    const position = startPosition + offset;
+    const lineStart = target.lastIndexOf("\n", position - 1) + 1;
+    const isIndentation = character === " " && target.slice(lineStart, position).trim() === "";
+    return isIndentation ? '<span class="indentSpace">·</span>' : escapeHtml(character);
+  }).join("");
+}
 function renderTarget(value = "") {
   const target = currentExercise().target;
   const wrongAt = [...value].findIndex((character, position) => !charactersMatch(character, target[position], position, target));
   const typedLength = wrongAt === -1 ? Math.min(value.length, target.length) : wrongAt;
   const current = target[typedLength] ?? "";
   const remaining = target.slice(typedLength + (current ? 1 : 0));
-  elements.target.innerHTML = `<span class="typed">${escapeHtml(target.slice(0, typedLength))}</span>` +
-    (current ? `<span class="current">${escapeHtml(current)}</span>` : "") + `<span class="remaining">${escapeHtml(remaining)}</span>`;
+  elements.target.setAttribute("aria-label", target);
+  elements.target.innerHTML = `<span class="typed">${renderSegment(target.slice(0, typedLength), 0, target)}</span>` +
+    (current ? `<span class="current">${renderSegment(current, typedLength, target)}</span>` : "") +
+    `<span class="remaining">${renderSegment(remaining, typedLength + (current ? 1 : 0), target)}</span>`;
 }
 function updateStats() {
   const total = TYPING_SETS[mode].length;
@@ -100,17 +109,139 @@ function updateStats() {
   elements.streak.textContent = `${streak} 🔥`;
   elements.progress.style.width = `${((index + (completed ? 1 : 0)) / total) * 100}%`;
 }
+function keyboardHtml(expectedKeys) {
+  const expected = new Set(expectedKeys.map(key => key.toLowerCase()));
+  const keys = ["Ctrl", "Z", "X", "C", "V", "A", "S", "D", "F"];
+  return `<div class="keyboardGuide" aria-label="מקלדת עזר">${keys.map(key =>
+    `<span class="keyboardKey ${expected.has(key.toLowerCase()) ? "expected" : ""}" data-key="${key.toLowerCase()}">${key}</span>`
+  ).join("")}</div>`;
+}
+function setPressedKey(key, pressed) {
+  const normalized = key === "Control" || key === "Meta" ? "ctrl" : key.toLowerCase();
+  elements.shortcutActivity.querySelector(`[data-key="${normalized}"]`)?.classList.toggle("pressed", pressed);
+}
+function activityFeedback(message, isError = false) {
+  elements.message.textContent = message;
+  elements.message.className = `typingMessage ${isError ? "status bad" : ""}`;
+}
+function recordShortcutAttempt(success) {
+  if (!startedAt) startedAt = Date.now();
+  totalKeystrokes += 1;
+  if (success) correctKeystrokes += 1;
+  updateStats();
+}
+function finishActivity(message) {
+  if (completed) return;
+  recordShortcutAttempt(true);
+  completeExercise();
+  elements.message.textContent = message;
+}
+function addShortcutListener(element, handler) {
+  element.addEventListener("keydown", event => {
+    setPressedKey(event.key, true);
+    if (event.ctrlKey || event.metaKey) event.preventDefault();
+    handler(event);
+  });
+  element.addEventListener("keyup", event => setPressedKey(event.key, false));
+}
+function renderShortcutActivity(exercise) {
+  hintLevel = 0;
+  const instructions = {
+    selectAll: "בחרו את כל שלוש שורות הקוד באמצעות קיצור המקלדת.",
+    copyPaste: "העתיקו את השורה המסומנת והדביקו אותה בתיבה הריקה.",
+    undo: "יש טעות מיותרת בסוף הקוד. בטלו את הפעולה האחרונה.",
+    save: "יש שינויים שלא נשמרו. שמרו אותם בעזרת קיצור המקלדת.",
+  };
+  elements.shortcutActivity.innerHTML = `<p class="shortcutInstruction"><b>המשימה:</b> ${instructions[exercise.activity]}</p>` +
+    keyboardHtml(exercise.keys) + `<div id="activityWorkspace" class="activityWorkspace"></div>` +
+    `<button id="shortcutHintBtn" class="btn btnGhost shortcutHintBtn" type="button">רמז 💡</button>`;
+  const workspace = elements.shortcutActivity.querySelector("#activityWorkspace");
+  const hintButton = elements.shortcutActivity.querySelector("#shortcutHintBtn");
+  hintButton.addEventListener("click", () => {
+    hintLevel += 1;
+    const firstKey = exercise.keys[0];
+    activityFeedback(hintLevel === 1
+      ? `חפשו את ${firstKey} בפינה השמאלית התחתונה של המקלדת.`
+      : `החזיקו את ${firstKey}, ובזמן שהוא לחוץ הקישו ${exercise.keys.slice(1).join(" ואז ")}.`);
+    if (hintLevel > 1) elements.shortcutActivity.querySelectorAll(".keyboardKey.expected").forEach(key => key.classList.add("hinted"));
+  });
+
+  if (exercise.activity === "selectAll") {
+    workspace.innerHTML = '<textarea class="activityEditor" rows="4" spellcheck="false">name = "Noa"\nscore = 10\nprint(name, score)</textarea>';
+    const editor = workspace.querySelector("textarea");
+    addShortcutListener(editor, event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
+        editor.select();
+        const selectedAll = editor.selectionStart === 0 && editor.selectionEnd === editor.value.length;
+        if (selectedAll) finishActivity("הצלחתם! כל הקוד נבחר בבת אחת 🎉");
+      } else if (!["Control", "Meta"].includes(event.key)) {
+        recordShortcutAttempt(false); activityFeedback(`לחצתם ${event.key}, אבל המטרה היא לבחור את כל הקוד.`, true);
+      }
+    });
+    editor.focus();
+  } else if (exercise.activity === "copyPaste") {
+    activityBuffer = "";
+    workspace.innerHTML = '<label>הקוד להעתקה:<textarea class="activityEditor activitySource" rows="2" readonly>print("Hello")</textarea></label><label>הדביקו כאן:<textarea class="activityEditor activityDestination" rows="2" spellcheck="false"></textarea></label>';
+    const source = workspace.querySelector(".activitySource");
+    const destination = workspace.querySelector(".activityDestination");
+    source.select();
+    addShortcutListener(source, event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c" && source.selectionStart === 0 && source.selectionEnd === source.value.length) {
+        activityBuffer = source.value; recordShortcutAttempt(true); activityFeedback("הועתק! עכשיו עברו לתיבה הריקה ולחצו Ctrl + V."); destination.focus();
+      } else if (!["Control", "Meta"].includes(event.key)) {
+        recordShortcutAttempt(false); activityFeedback("קודם העתיקו את השורה המסומנת בעזרת Ctrl + C.", true);
+      }
+    });
+    addShortcutListener(destination, event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v" && activityBuffer) {
+        destination.value = activityBuffer; finishActivity("מעולה! העתקתם והדבקתם את הקוד בלי לכתוב אותו מחדש 🎉");
+      } else if (!["Control", "Meta"].includes(event.key)) {
+        recordShortcutAttempt(false); activityFeedback("אין צורך להקליד מחדש — השתמשו בקיצור ההדבקה.", true);
+      }
+    });
+  } else if (exercise.activity === "undo") {
+    workspace.innerHTML = '<textarea class="activityEditor" rows="2" spellcheck="false">print("Hello")xxxx</textarea><span class="saveState badState">יש טעות בקוד</span>';
+    const editor = workspace.querySelector("textarea");
+    addShortcutListener(editor, event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+        editor.value = 'print("Hello")'; workspace.querySelector(".saveState").textContent = "הטעות בוטלה ✓";
+        finishActivity("כל הכבוד! ביטלתם את הפעולה האחרונה והקוד תוקן 🎉");
+      } else if (!["Control", "Meta"].includes(event.key)) {
+        recordShortcutAttempt(false); activityFeedback("אל תמחקו ידנית — נסו לבטל את הפעולה האחרונה.", true);
+      }
+    });
+    editor.focus();
+  } else {
+    workspace.innerHTML = '<textarea class="activityEditor" rows="2" spellcheck="false">score = 10\nprint(score)</textarea><span class="saveState unsaved">● יש שינויים שלא נשמרו</span>';
+    const editor = workspace.querySelector("textarea");
+    addShortcutListener(editor, event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        const state = workspace.querySelector(".saveState"); state.textContent = "✓ נשמר בהצלחה"; state.className = "saveState saved";
+        finishActivity("מצוין! שמרתם את השינויים בלי לעזוב את המקלדת 🎉");
+      } else if (!["Control", "Meta"].includes(event.key)) {
+        recordShortcutAttempt(false); activityFeedback("השינויים עדיין לא נשמרו. נסו את קיצור השמירה.", true);
+      }
+    });
+    editor.focus();
+  }
+}
 function showExercise() {
   const exercise = currentExercise();
   completed = false; previousValue = ""; elements.input.value = ""; elements.input.disabled = false;
   elements.input.classList.remove("hasError"); elements.next.disabled = true;
   elements.next.textContent = index === TYPING_SETS[mode].length - 1 ? "סיום 🎉" : "התרגיל הבא ←";
   elements.translation.textContent = exercise.translation; elements.title.textContent = modeTitles[mode];
-  elements.inputLabel.textContent = exercise.type === "shortcut" ? "לחצו עכשיו על צירוף המקשים:" : "התחילו להקליד כאן:";
-  elements.input.readOnly = exercise.type === "shortcut";
+  const isActivity = exercise.type === "activity";
+  elements.inputLabel.textContent = "התחילו להקליד כאן:";
+  elements.inputLabel.classList.toggle("hidden", isActivity);
+  elements.input.classList.toggle("hidden", isActivity);
+  elements.shortcutActivity.classList.toggle("hidden", !isActivity);
+  elements.input.readOnly = false;
+  elements.input.rows = mode === "code" ? 5 : 2;
   elements.input.placeholder = exercise.type === "shortcut" ? "לחצו על הקיצור יחד…" : "";
-  elements.message.textContent = exercise.hint ?? (exercise.type === "shortcut" ? "יש ללחוץ על שני המקשים יחד" : "הדיוק חשוב יותר מהמהירות 🌟");
-  elements.message.className = "typingMessage"; renderTarget(); updateStats(); elements.input.focus();
+  elements.message.textContent = exercise.hint ?? (isActivity ? "בצעו את הפעולה באזור התרגול" : "הדיוק חשוב יותר מהמהירות 🌟");
+  elements.message.className = "typingMessage"; renderTarget(); updateStats();
+  if (isActivity) renderShortcutActivity(exercise); else elements.input.focus();
 }
 function resetSession() {
   index = 0; correctKeystrokes = 0; totalKeystrokes = 0; streak = 0; startedAt = null; showExercise();
@@ -121,7 +252,7 @@ function completeExercise() {
   elements.message.className = "typingMessage status good"; elements.next.focus(); updateStats();
 }
 function handleInput() {
-  if (currentExercise().type === "shortcut") return;
+  if (currentExercise().type === "activity") return;
   if (!startedAt) startedAt = Date.now();
   const value = elements.input.value;
   const target = currentExercise().target;
@@ -134,8 +265,15 @@ function handleInput() {
   }
   previousValue = value;
   const isCorrectPrefix = prefixMatches(value, target);
+  const firstMismatch = [...value].findIndex((character, position) => !charactersMatch(character, target[position], position, target));
+  const indentationError = mode === "code" && firstMismatch !== -1 &&
+    (target[firstMismatch] === " " || value[firstMismatch] === " " || target[firstMismatch] === "\n");
   elements.input.classList.toggle("hasError", !isCorrectPrefix);
-  elements.message.textContent = isCorrectPrefix ? "מצוין, המשיכו כך…" : "שימו לב: יש תו שלא מתאים. פקודות פייתון חייבות להישאר באותיות קטנות 💡";
+  elements.message.textContent = isCorrectPrefix
+    ? "מצוין, המשיכו כך…"
+    : (indentationError
+      ? "בדקו את ההזחה: כל נקודה כתומה מייצגת רווח אחד. אפשר להשתמש ב־Tab 💡"
+      : "שימו לב: יש תו שלא מתאים. פקודות פייתון חייבות להישאר באותיות קטנות 💡");
   elements.message.className = `typingMessage ${isCorrectPrefix ? "" : "status bad"}`;
   renderTarget(value);
   if (value.length === target.length && isCorrectPrefix) completeExercise();
@@ -144,19 +282,6 @@ function handleInput() {
 elements.input.addEventListener("input", handleInput);
 elements.input.addEventListener("keydown", event => {
   const exercise = currentExercise();
-  if (exercise.type === "shortcut") {
-    event.preventDefault();
-    if (!startedAt) startedAt = Date.now();
-    totalKeystrokes += 1;
-    const modifierPressed = event.ctrlKey || event.metaKey;
-    if (modifierPressed && event.key.toLowerCase() === exercise.key) {
-      correctKeystrokes += 1; completeExercise();
-    } else if (!["Control", "Meta"].includes(event.key)) {
-      elements.message.textContent = `נלחץ ${event.key}. נסו שוב ולחצו על שני המקשים יחד`;
-      elements.message.className = "typingMessage status bad"; updateStats();
-    }
-    return;
-  }
   if (event.key === "Tab" && mode === "code") {
     event.preventDefault();
     const start = elements.input.selectionStart;

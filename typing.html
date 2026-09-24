@@ -22,7 +22,7 @@
       <h2>בחרו מסלול</h2>
       <div class="typingTabs" role="tablist" aria-label="סוג התרגול">
         <button class="btn typingTab" type="button" role="tab" data-mode="commands" aria-selected="true">פקודות פייתון</button>
-        <button class="btn typingTab" type="button" role="tab" data-mode="code" aria-selected="false">שורות קוד</button>
+        <button class="btn typingTab" type="button" role="tab" data-mode="code" aria-selected="false">שורות קוד והזחות</button>
         <button class="btn typingTab" type="button" role="tab" data-mode="keyboard" aria-selected="false">קיצורים ותווים</button>
       </div>
     </section>
@@ -38,6 +38,7 @@
         <div id="translation" class="typingTranslation"></div>
         <div id="target" class="typingTarget" aria-live="polite"></div>
       </div>
+      <div id="shortcutActivity" class="shortcutActivity hidden"></div>
       <label id="inputLabel" class="mini" for="typingInput">התחילו להקליד כאן:</label>
       <textarea id="typingInput" class="typingInput" rows="2" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="typingMessage"></textarea>
       <p id="typingMessage" class="typingMessage" aria-live="polite">הדיוק חשוב יותר מהמהירות 🌟</p>
