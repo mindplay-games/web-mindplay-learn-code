@@ -47,6 +47,7 @@ const elements = {
   accuracy: document.getElementById("accuracy"), speed: document.getElementById("speed"),
   streak: document.getElementById("streak"), progress: document.getElementById("progressBar"),
   title: document.getElementById("practiceTitle"), shortcutActivity: document.getElementById("shortcutActivity"),
+  keyLearningGuide: document.getElementById("keyLearningGuide"),
 };
 let mode = "commands";
 let index = 0;
@@ -108,6 +109,47 @@ function updateStats() {
   elements.speed.textContent = charactersPerMinute;
   elements.streak.textContent = `${streak} 🔥`;
   elements.progress.style.width = `${((index + (completed ? 1 : 0)) / total) * 100}%`;
+}
+const KEYBOARD_ROWS = [
+  ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace"],
+  ["Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\"],
+  ["Caps Lock", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter"],
+  ["Shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift"],
+  ["Ctrl", "Alt", "Space", "Alt", "Ctrl"],
+];
+const SYMBOL_KEYS = {
+  "()": ["Shift", "9", "0"], '""': ["Shift", "'"], ":": ["Shift", ";"],
+  "==": ["="], "[]": ["[", "]"], "{}": ["Shift", "[", "]"], "_": ["Shift", "-"],
+};
+function renderFullKeyboard(expectedKeys = []) {
+  const expected = new Set(expectedKeys.map(key => key.toLowerCase()));
+  return `<div class="fullKeyboard" role="img" aria-label="מקלדת אנגלית מלאה; המקשים הדרושים לתרגיל מודגשים">${KEYBOARD_ROWS.map((row, rowIndex) =>
+    `<div class="fullKeyboardRow keyboardRow${rowIndex + 1}">${row.map(key => {
+      const normalized = key.toLowerCase();
+      const keyClass = key === "Space" ? " spaceKey" : key.length > 2 ? " wideKey" : "";
+      return `<span class="fullKeyboardKey${keyClass}${expected.has(normalized) ? " expected" : ""}" data-key="${normalized}">${key === "Space" ? "רווח" : key}</span>`;
+    }).join("")}</div>`
+  ).join("")}</div>`;
+}
+function renderKeyLearningGuide(exercise) {
+  const needsIndentation = exercise.target.includes("\n ");
+  if (mode === "code" && needsIndentation) {
+    elements.keyLearningGuide.innerHTML = `<div class="keyExplanation"><span class="keyIllustration tabKey">Tab ↹</span><div><b>הכירו את מקש Tab</b><p>המקש יוצר הזחה של 4 רווחים. הוא נמצא בצד שמאל של המקלדת, משמאל לאות Q ומעל Caps Lock. אחרי ירידת שורה, לחצו עליו פעם אחת כדי להכניס את הקוד פנימה.</p></div></div>`;
+    elements.keyLearningGuide.classList.remove("hidden");
+    return;
+  }
+  if (mode === "keyboard") {
+    const expectedKeys = exercise.keys ?? SYMBOL_KEYS[exercise.target] ?? [];
+    const needsShift = expectedKeys.includes("Shift");
+    const shiftExplanation = needsShift
+      ? `<div class="shiftExplanation"><span class="keyIllustration shiftKey">⇧ Shift</span><div><b>הכירו את מקש Shift</b><p>Shift מסומן בדרך כלל בחץ כלפי מעלה ⇧. יש שני מקשי Shift בשורה של האות Z — אחד משמאל ואחד מימין. מחזיקים Shift ובו־זמנית לוחצים על מקש נוסף כדי להקליד תו שמופיע בחלקו העליון.</p></div></div>`
+      : "";
+    elements.keyLearningGuide.innerHTML = `${shiftExplanation}${renderFullKeyboard(expectedKeys)}`;
+    elements.keyLearningGuide.classList.remove("hidden");
+    return;
+  }
+  elements.keyLearningGuide.classList.add("hidden");
+  elements.keyLearningGuide.innerHTML = "";
 }
 function keyboardHtml(expectedKeys) {
   const expected = new Set(expectedKeys.map(key => key.toLowerCase()));
@@ -241,6 +283,7 @@ function showExercise() {
   elements.input.placeholder = exercise.type === "shortcut" ? "לחצו על הקיצור יחד…" : "";
   elements.message.textContent = exercise.hint ?? (isActivity ? "בצעו את הפעולה באזור התרגול" : "הדיוק חשוב יותר מהמהירות 🌟");
   elements.message.className = "typingMessage"; renderTarget(); updateStats();
+  renderKeyLearningGuide(exercise);
   if (isActivity) renderShortcutActivity(exercise); else elements.input.focus();
 }
 function resetSession() {

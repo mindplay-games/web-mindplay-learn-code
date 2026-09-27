@@ -932,11 +932,29 @@ html[data-theme="light"] .typingStat { background: var(--surface); }
 html[data-theme="light"] .typingPrompt { background: #F7FBFB; }
 html[data-theme="light"] .typingInput { background: #FFFFFF; color: var(--text); }
 html[data-theme="light"] .typingTab[aria-selected="true"] { background: var(--yellow); color: var(--yellowText); }
+.keyLearningGuide { margin: 0 0 16px; padding: 16px; border: 1px solid var(--accentBorder); border-radius: var(--r-lg); background: rgba(0,212,255,.055); }
+.keyExplanation, .shiftExplanation { display: flex; align-items: center; gap: 16px; direction: rtl; }
+.keyExplanation p, .shiftExplanation p { margin: 4px 0 0; color: var(--muted); line-height: 1.65; }
+.keyIllustration { flex: 0 0 auto; min-width: 108px; height: 58px; padding: 0 14px; display: inline-grid; place-items: center; direction: ltr; border: 2px solid var(--yellow); border-bottom-width: 6px; border-radius: 9px; background: #171B30; color: var(--yellow); font: 800 17px ui-monospace, Menlo, Consolas, monospace; box-shadow: 0 0 18px rgba(255,229,0,.15); }
+.fullKeyboard { direction: ltr; display: grid; gap: 5px; width: 100%; max-width: 820px; margin: 0 auto; overflow-x: auto; padding: 7px; border: 1px solid rgba(255,255,255,.1); border-radius: 10px; background: #080B17; }
+.shiftExplanation + .fullKeyboard { margin-top: 16px; }
+.fullKeyboardRow { display: grid; grid-template-columns: repeat(14, minmax(34px, 1fr)); gap: 5px; min-width: 690px; }
+.keyboardRow3 { grid-template-columns: 1.45fr repeat(11, 1fr) 1.75fr; padding-inline: 3px; }
+.keyboardRow4 { grid-template-columns: 1.8fr repeat(10, 1fr) 2.1fr; padding-inline: 8px; }
+.keyboardRow5 { grid-template-columns: 1.3fr 1.2fr 6fr 1.2fr 1.3fr; padding-inline: 42px; }
+.fullKeyboardKey { height: 35px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.18); border-bottom-width: 3px; border-radius: 5px; background: #171B30; color: #AAB4CE; font: 700 11px ui-monospace, Menlo, Consolas, monospace; white-space: nowrap; }
+.fullKeyboardKey.expected { color: #111; background: var(--yellow); border-color: var(--yellow); box-shadow: 0 0 12px rgba(255,229,0,.38); }
+html[data-theme="light"] .keyLearningGuide { background: var(--surface2); }
+html[data-theme="light"] .keyIllustration, html[data-theme="light"] .fullKeyboardKey { background: #fff; color: var(--text); border-color: #C7D8D8; }
+html[data-theme="light"] .fullKeyboard { background: #EAF2F2; border-color: var(--border); }
+html[data-theme="light"] .fullKeyboardKey.expected { background: var(--yellow); color: #111; border-color: #D5AF00; }
 @media (max-width: 600px) {
   .typingStats { grid-template-columns: repeat(2, 1fr); }
   .typingPrompt { padding: 16px 12px; }
   .typingActions { flex-direction: column; }
   .typingActions .btn { width: 100%; }
+  .keyExplanation, .shiftExplanation { align-items: flex-start; flex-direction: column; }
+  .keyIllustration { min-width: 100px; height: 50px; }
 }
 
 /* ===== Guided keyboard-shortcut activities ===== */
