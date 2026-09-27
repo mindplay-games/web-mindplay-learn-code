@@ -133,14 +133,19 @@ function renderFullKeyboard(expectedKeys = []) {
   ).join("")}</div>`;
 }
 function renderKeyLearningGuide(exercise) {
-  if (mode === "code") {
+  const needsIndentation = exercise.target.includes("\n ");
+  if (mode === "code" && needsIndentation) {
     elements.keyLearningGuide.innerHTML = `<div class="keyExplanation"><span class="keyIllustration tabKey">Tab ↹</span><div><b>הכירו את מקש Tab</b><p>המקש יוצר הזחה של 4 רווחים. הוא נמצא בצד שמאל של המקלדת, משמאל לאות Q ומעל Caps Lock. אחרי ירידת שורה, לחצו עליו פעם אחת כדי להכניס את הקוד פנימה.</p></div></div>`;
     elements.keyLearningGuide.classList.remove("hidden");
     return;
   }
   if (mode === "keyboard") {
     const expectedKeys = exercise.keys ?? SYMBOL_KEYS[exercise.target] ?? [];
-    elements.keyLearningGuide.innerHTML = `<div class="shiftExplanation"><span class="keyIllustration shiftKey">⇧ Shift</span><div><b>הכירו את מקש Shift</b><p>Shift מסומן בדרך כלל בחץ כלפי מעלה ⇧. יש שני מקשי Shift בשורה של האות Z — אחד משמאל ואחד מימין. מחזיקים Shift ובו־זמנית לוחצים על מקש נוסף כדי להקליד תו שמופיע בחלקו העליון.</p></div></div><p class="keyboardCaption"><b>מקלדת מלאה להדגמה:</b> המקשים הצהובים הם המקשים הדרושים לתרגיל הנוכחי.</p>${renderFullKeyboard(expectedKeys)}`;
+    const needsShift = expectedKeys.includes("Shift");
+    const shiftExplanation = needsShift
+      ? `<div class="shiftExplanation"><span class="keyIllustration shiftKey">⇧ Shift</span><div><b>הכירו את מקש Shift</b><p>Shift מסומן בדרך כלל בחץ כלפי מעלה ⇧. יש שני מקשי Shift בשורה של האות Z — אחד משמאל ואחד מימין. מחזיקים Shift ובו־זמנית לוחצים על מקש נוסף כדי להקליד תו שמופיע בחלקו העליון.</p></div></div>`
+      : "";
+    elements.keyLearningGuide.innerHTML = `${shiftExplanation}<p class="keyboardCaption"><b>לפני שמקלידים:</b> מצאו במקלדת את המקשים הצהובים הדרושים לתרגיל.</p>${renderFullKeyboard(expectedKeys)}`;
     elements.keyLearningGuide.classList.remove("hidden");
     return;
   }
