@@ -39,6 +39,14 @@ const TYPING_SETS = {
   ],
 };
 
+// Remove the obsolete onboarding card if it is present in a cached or
+// partially merged version of the page. It is not part of the exercises.
+document.querySelectorAll("h2, h3").forEach(heading => {
+  if (heading.textContent.replace(/\s+/g, " ").trim() === "לפני שמתחילים — חשוב לדעת") {
+    (heading.closest("section") ?? heading.closest(".card") ?? heading.parentElement)?.remove();
+  }
+});
+
 const modeTitles = { commands: "הקלידו את הפקודה", code: "הקלידו את שורת הקוד", keyboard: "קיצורים ותווים מיוחדים" };
 const elements = {
   input: document.getElementById("typingInput"), inputLabel: document.getElementById("inputLabel"),
