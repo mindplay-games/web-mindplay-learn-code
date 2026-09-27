@@ -145,7 +145,7 @@ function renderKeyLearningGuide(exercise) {
     const shiftExplanation = needsShift
       ? `<div class="shiftExplanation"><span class="keyIllustration shiftKey">⇧ Shift</span><div><b>הכירו את מקש Shift</b><p>Shift מסומן בדרך כלל בחץ כלפי מעלה ⇧. יש שני מקשי Shift בשורה של האות Z — אחד משמאל ואחד מימין. מחזיקים Shift ובו־זמנית לוחצים על מקש נוסף כדי להקליד תו שמופיע בחלקו העליון.</p></div></div>`
       : "";
-    elements.keyLearningGuide.innerHTML = `${shiftExplanation}<p class="keyboardCaption"><b>לפני שמקלידים:</b> מצאו במקלדת את המקשים הצהובים הדרושים לתרגיל.</p>${renderFullKeyboard(expectedKeys)}`;
+    elements.keyLearningGuide.innerHTML = `${shiftExplanation}${renderFullKeyboard(expectedKeys)}`;
     elements.keyLearningGuide.classList.remove("hidden");
     return;
   }
