@@ -1,1 +1,1012 @@
-.movieLab{max-width:1040px}.identity{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}.identity label{display:grid;gap:7px;font-weight:700}.identity input,.labSelect,.fillInput{width:100%;padding:11px;border:1px solid var(--accentBorder);border-radius:9px;background:var(--surface2);color:var(--text);font:inherit}.labProgress{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;margin:16px 0}.labProgress strong,.labProgress span{display:block}.labProgress span{font-size:13px;color:var(--muted)}.progressTrack{height:11px;border-radius:999px;background:var(--surface);overflow:hidden}.progressTrack div{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--yellow));transition:width .25s}.labTabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.labTabs button{font:inherit}.labTabs .active{outline:2px solid var(--yellow);color:var(--yellow)}.labMeta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px}.activity{margin:20px 0}.choiceGrid,.architecture,.matchGrid,.movieGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.option,.archCard,.movieCard{padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);text-align:right;font:inherit;cursor:pointer}.option[aria-pressed=true],.archCard.selected{border-color:var(--yellow);background:var(--yellowBg)}.archCard{min-height:92px}.archCard small{display:block;color:var(--muted);margin-top:6px}.flow{display:grid;gap:8px}.flowRow{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2)}.flowRow code,.codeBox,.pairLabel{direction:ltr;text-align:left;font-family:ui-monospace,Consolas,monospace}.flowRow button{padding:5px 9px}.matchRow{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}.codeBox{white-space:pre-wrap;background:#080b17;border:1px solid var(--border);padding:16px;border-radius:10px;color:#c7efff;line-height:1.7;overflow:auto}.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;padding:14px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:10px;direction:ltr;text-align:left}.journey{display:flex;flex-wrap:wrap;gap:8px}.journey span{padding:8px;border-radius:999px;background:var(--surface2);border:1px solid var(--border)}.journey .current{border-color:var(--yellow);color:var(--yellow)}.filterControls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.movieCard{cursor:default}.movieCard.good{border-color:var(--good)}.movieCard.bad{opacity:.7}.checks{display:grid;gap:4px;font-family:ui-monospace,Consolas,monospace;font-size:13px;direction:ltr;text-align:left}.labFeedback{min-height:30px;padding:0 2px}.labFeedback.good{color:var(--good)}.labFeedback.bad{color:var(--bad)}.labActions{display:flex;gap:10px;justify-content:flex-end;margin-top:15px}.summaryTopics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:16px 0}.summaryTopics div{padding:10px;background:var(--surface2);border-radius:8px}.sendState{min-height:25px;margin-top:10px}@media(max-width:620px){.identity,.filterControls{grid-template-columns:1fr}.labProgress{grid-template-columns:1fr}.matchRow{grid-template-columns:1fr}.labActions{flex-direction:column}.labActions button{width:100%}}
+/* A light learning workspace, scoped to the Movie Lab in both site themes. */
+html[data-theme] .movieLabPage {
+  --ink:#182b45;
+  --secondary:#485b70;
+  --line:#b4c5d4;
+  --blue:#075b83;
+  --paper:#fff;
+  --soft:#eff7fb;
+  --success:#17613c;
+  --error:#9c2937;
+  background:#f0f6fa;
+  background-image:radial-gradient(#c4dbe5 .8px,transparent .8px);
+  background-size:22px 22px;
+  color:var(--ink);
+  font-size:18px;
+  line-height:1.65;
+}
+html[data-theme] .movieLabPage :where(input,button,select) {
+  font:inherit;
+}
+html[data-theme] .movieLabPage [hidden] {
+  display:none!important;
+}
+html[data-theme] .movieLabPage :where(button,a,input,select,summary):focus-visible {
+  outline:3px solid #075b83;
+  outline-offset:4px;
+  box-shadow:0 0 0 6px #fff;
+}
+html[data-theme] .movieLabPage :where(h1,h2,h3,p) {
+  margin-block:0 14px;
+}
+html[data-theme] .movieLabPage :where(code,bdi) {
+  unicode-bidi:isolate;
+}
+html[data-theme] .movieLabPage code {
+  direction:ltr;
+  display:inline-block;
+  text-align:start;
+  background:#e6f0f6;
+  color:#173d5a;
+  border:0;
+  border-radius:5px;
+  padding:1px 5px;
+  font-size:.94em;
+  overflow-wrap:anywhere;
+  font-family:ui-monospace,Consolas,monospace;
+}
+html[data-theme] .movieLabPage .mini,.privacyNote,.labFooter {
+  font-size:15px;
+  color:var(--secondary);
+}
+.skipLink {
+  position:fixed;
+  inset-block-start:0;
+  transform:translateY(-200%);
+  inset-inline-start:16px;
+  z-index:10;
+  background:white;
+  color:#173d5a;
+  padding:12px;
+}
+.skipLink:focus {
+  inset-block-start:12px;
+  transform:translateY(0);
+}
+.labHeader {
+  background:#fff;
+  border-block-end:1px solid #c9dce7;
+  padding:22px 24px 28px;
+}
+.headerInner,.labHero {
+  max-width:1000px;
+  margin-inline:auto;
+}
+.headerInner {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  font-size:15px;
+}
+.labBack {
+  color:#075b83;
+  font-weight:700;
+  text-decoration:none;
+}
+.labBrand {
+  font-weight:700;
+  color:#24425a;
+}
+.labBrand span {
+  color:#08739b;
+}
+.labHero {
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-block-start:28px;
+}
+.heroIcon {
+  display:grid;
+  place-items:center;
+  flex:none;
+  inline-size:84px;
+  block-size:84px;
+  background:#dff5fa;
+  border-radius:26px;
+  transform:rotate(5deg);
+  font-size:44px;
+}
+.labHero h1 {
+  font-size:clamp(26px,3.4vw,36px);
+  line-height:1.3;
+  margin-block-end:10px;
+  color:#182b45;
+}
+.labHero p:last-child {
+  color:#485b70;
+  font-size:18px;
+  margin:0;
+}
+.eyebrow,.sectionKicker {
+  font-weight:700;
+  font-size:14px;
+  color:#075b83;
+  letter-spacing:.02em;
+}
+.movieLab.container {
+  width:100%;
+  max-width:1048px;
+  padding:28px 24px 20px;
+  margin-inline:auto;
+}
+html[data-theme] .movieLabPage .card {
+  background:#fff;
+  border:1px solid #bdcfdb;
+  border-radius:22px;
+  padding:28px;
+  box-shadow:0 6px 24px #24425a0a;
+  min-width:0;
+  margin:0;
+  overflow:visible;
+  transform:none;
+}
+html[data-theme] .movieLabPage .card:hover {
+  border-color:#bdcfdb;
+  box-shadow:0 6px 24px #24425a0a;
+  transform:none;
+}
+html[data-theme] .movieLabPage .card h2 {
+  font-size:28px;
+  line-height:1.35;
+  color:#182b45;
+  margin-block:8px 12px;
+  font-weight:900;
+  letter-spacing:normal;
+  text-transform:none;
+  border:0;
+  padding:0;
+  user-select:text;
+}
+html[data-theme] .movieLabPage .card h3 {
+  font-size:22px;
+  color:#182b45;
+}
+.labIntro {
+  border-block-start:6px solid #20a9c7!important;
+}
+.labIntro>p {
+  max-width:720px;
+}
+.introChips {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-block:20px;
+}
+.introChips span {
+  border:1px solid #bdd9d1;
+  background:#edf8f3;
+  color:#22553e;
+  font-size:15px;
+  padding:5px 12px;
+  border-radius:30px;
+}
+.identity {
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:18px;
+  margin-block:24px;
+}
+.identity label,.filterControls label {
+  display:grid;
+  gap:8px;
+  font-weight:700;
+  font-size:18px;
+  min-width:0;
+}
+.identity input,.labSelect,.fillInput {
+  inline-size:100%;
+  min-width:0;
+  min-block-size:54px;
+  padding:12px 14px;
+  border:2px solid #718a9f;
+  border-radius:12px;
+  background:#fff;
+  color:#182b45;
+  font-size:18px;
+  line-height:1.5;
+}
+.identity input::placeholder {
+  color:#64758a;
+}
+.privacyNote {
+  margin-block:18px 0;
+  max-width:720px;
+}
+html[data-theme] .movieLabPage .btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  white-space:normal;
+  min-block-size:50px;
+  padding:11px 22px;
+  border:2px solid #075b83;
+  border-radius:12px;
+  background:#075b83;
+  color:#fff;
+  font-size:18px;
+  font-weight:700;
+  line-height:1.45;
+  box-shadow:none;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background .16s,transform .16s;
+}
+html[data-theme] .movieLabPage .btn:hover {
+  background:#064867;
+  color:#fff;
+  box-shadow:none;
+  transform:translateY(-1px);
+}
+html[data-theme] .movieLabPage .btnGreen {
+  background:#ffdf63;
+  color:#253047;
+  border-color:#b38d10;
+}
+html[data-theme] .movieLabPage .btnGreen:hover {
+  background:#ffd343;
+  color:#253047;
+}
+html[data-theme] .movieLabPage .btnGhost {
+  background:#fff;
+  color:#244963;
+  border-color:#7891a5;
+}
+html[data-theme] .movieLabPage .btnGhost:hover {
+  background:#edf5fa;
+  color:#173d5a;
+}
+html[data-theme] .movieLabPage button:disabled {
+  opacity:.6;
+  cursor:wait;
+}
+.labProgress {
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:22px;
+  align-items:center;
+  padding:18px 22px;
+  background:#fff;
+  border:1px solid #bdcfdb;
+  border-radius:18px;
+  margin-block-end:16px;
+}
+.progressNumbers {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.progressNumbers strong {
+  font-size:16px;
+}
+.progressNumbers span {
+  font-size:15px;
+  font-weight:700;
+  color:#075b83;
+  background:#e5f5fa;
+  padding:4px 10px;
+  border-radius:20px;
+}
+.labProgress .btn {
+  font-size:14px;
+  min-block-size:44px;
+  padding:8px 12px;
+}
+.progressTrack {
+  height:12px;
+  border-radius:999px;
+  background:#dbe7ed;
+  overflow:hidden;
+}
+.progressTrack div {
+  height:100%;
+  background:#1289aa;
+  border-radius:inherit;
+  transition:width .25s;
+}
+.moduleNavigator {
+  margin-block-end:18px;
+  border:1px solid #bdcfdb;
+  border-radius:16px;
+  background:#fff;
+  padding:14px;
+}
+.moduleNavigator summary {
+  cursor:pointer;
+  font-weight:700;
+  font-size:16px;
+  list-style-position:inside;
+}
+.moduleNavigator summary .mini {
+  margin-inline-start:10px;
+}
+.labTabs {
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:8px;
+  margin-block-start:14px;
+}
+html[data-theme] .movieLabPage .labTabs .btn {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  min-width:0;
+  border:1px solid #7891a5;
+  padding:10px 4px;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.45;
+  background:#f5f8fb;
+  color:#364d63;
+  text-align:center;
+}
+.labTabs .stepNumber {
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  inline-size:30px;
+  block-size:30px;
+  background:#e0eaf1;
+  font-weight:700;
+}
+html[data-theme] .movieLabPage .labTabs .active {
+  background:#e6f6fc;
+  border:2px solid #087a9e;
+  color:#064d6d;
+  outline:none;
+  font-weight:700;
+}
+.labTabs .active .stepNumber {
+  color:white;
+  background:#087a9e;
+}
+.labTabs .done .stepNumber {
+  background:#d5efdf;
+  color:#17573a;
+}
+.labMeta {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  color:#485b70;
+  font-size:15px;
+  margin-block-end:14px;
+}
+html[data-theme] .movieLabPage .badge {
+  color:#075b83;
+  background:#e6f4fa;
+  border:1px solid #afd3e3;
+  font-size:14px;
+  padding:5px 12px;
+  border-radius:20px;
+  box-shadow:none;
+}
+html[data-theme] .movieLabPage #objective {
+  font-size:18px;
+  color:#485b70;
+  border-block-end:1px solid #dce5ed;
+  padding-block-end:18px;
+  margin-block-end:20px;
+}
+.questionCard h2:focus {
+  outline:none;
+}
+.activity {
+  font-size:19px;
+  line-height:1.75;
+  animation:labAppear .2s ease-out;
+}
+.activity>p:first-child {
+  font-size:20px;
+  font-weight:500;
+  margin-block-end:18px;
+}
+.choiceGrid {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+.option,.answerChoice {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  inline-size:100%;
+  min-width:0;
+  min-block-size:60px;
+  padding:15px 18px;
+  border:2px solid #7891a5;
+  border-radius:14px;
+  background:#fff;
+  color:#182b45;
+  text-align:start;
+  font-size:18px;
+  line-height:1.65;
+  font-family:inherit;
+  cursor:pointer;
+  overflow-wrap:anywhere;
+  transition:border-color .16s,background .16s;
+}
+.option:hover,.answerChoice:hover {
+  background:#f0f8fc;
+  border-color:#4f94b4;
+}
+.option[aria-pressed=true],.answerChoice:has(input:checked) {
+  border-color:#087a9e;
+  background:#e5f5fc;
+  box-shadow:inset 0 0 0 1px #087a9e;
+}
+.optionMark {
+  flex:none;
+  display:grid;
+  place-items:center;
+  inline-size:30px;
+  block-size:30px;
+  border:1px solid #9ab5c6;
+  background:#f1f6fa;
+  border-radius:9px;
+  font-size:15px;
+  font-weight:700;
+}
+.option[aria-pressed=true] .optionMark {
+  background:#075b83;
+  color:#fff;
+  border-color:#075b83;
+}
+.answerText {
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.answerChoice input {
+  inline-size:22px;
+  block-size:22px;
+  flex:none;
+  accent-color:#087a9e;
+}
+.matchGrid {
+  display:grid;
+  gap:18px;
+}
+.matchRow {
+  min-inline-size:0;
+  margin:0;
+  padding:18px;
+  border:1px solid #b8d0df;
+  border-radius:16px;
+  background:#f4f9fc;
+}
+.matchRow legend {
+  font-size:18px;
+  font-weight:700;
+  padding-inline:10px;
+  max-inline-size:100%;
+}
+.matchChoices {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.matchChoices .answerChoice {
+  padding:12px;
+  font-size:17px;
+}
+.pairLabel {
+  direction:ltr;
+  unicode-bidi:isolate;
+  text-align:start;
+}
+.codeBox {
+  direction:ltr;
+  text-align:left;
+  unicode-bidi:isolate;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  background:#edf4fa;
+  color:#193955;
+  border:1px solid #aec8dc;
+  border-inline-start:5px solid #1682a7;
+  padding:20px;
+  border-radius:12px;
+  font:17px/1.9 ui-monospace,Consolas,monospace;
+  margin-block:14px 18px;
+  min-width:0;
+}
+.codeBox code {
+  background:none;
+  color:inherit;
+  padding:0;
+  display:inline;
+}
+.codeSlot {
+  background:#ffec9a;
+  color:#453a16;
+  padding:2px 8px;
+  border-radius:5px;
+  font-weight:700;
+}
+.fillFields {
+  display:grid;
+  gap:14px;
+  margin-block:18px;
+}
+.fillFields label {
+  display:grid;
+  gap:8px;
+  font-size:18px;
+  font-weight:700;
+}
+.fillInput {
+  direction:ltr;
+  text-align:left;
+  font-family:ui-monospace,Consolas,monospace;
+}
+.wordBank {
+  background:#f7fafc;
+  border:1px dashed #9ab7cc;
+  border-radius:14px;
+  padding:16px;
+  margin-block:20px;
+}
+.wordBank p {
+  font-size:15px;
+  color:#485b70;
+}
+.wordBank .choiceGrid {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.wordBank .option {
+  inline-size:auto;
+  min-block-size:48px;
+  padding:8px 16px;
+}
+.hint {
+  border:1px solid #d5bd64;
+  background:#fff9df;
+  border-radius:12px;
+  padding:12px 16px;
+  font-size:16px;
+  margin-block:18px;
+}
+.hint summary {
+  font-weight:700;
+  cursor:pointer;
+}
+.hint p {
+  margin-block:10px 0;
+}
+.flow {
+  display:grid;
+  gap:10px;
+  counter-reset:station;
+}
+.flowRow {
+  display:flex;
+  gap:14px;
+  align-items:center;
+  border:2px solid #bfd0df;
+  border-radius:14px;
+  padding:12px;
+  background:#f4f9fc;
+  min-width:0;
+  counter-increment:station;
+}
+.flowRow::before {
+  content:counter(station);
+  display:grid;
+  place-items:center;
+  inline-size:30px;
+  block-size:30px;
+  flex:none;
+  background:#dfeef6;
+  border-radius:50%;
+  font-weight:700;
+  color:#075b83;
+}
+.flowText {
+  flex:1;
+  min-width:0;
+  font-size:18px;
+  overflow-wrap:anywhere;
+}
+.moveButtons {
+  display:flex;
+  gap:6px;
+}
+html[data-theme] .movieLabPage .moveButtons button {
+  min-inline-size:44px;
+  min-block-size:44px;
+  padding:6px;
+  border:1px solid #87a8bd;
+  border-radius:10px;
+  background:#fff;
+  color:#075b83;
+  font-size:23px;
+  cursor:pointer;
+}
+.flowRow[draggable=true] {
+  cursor:grab;
+}
+.flowRow:focus-within {
+  border-color:#087a9e;
+}
+.filterControls {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  margin-block:20px;
+}
+.labSelect {
+  appearance:auto;
+  block-size:auto;
+  min-block-size:56px;
+  line-height:1.7;
+  padding-inline:12px 32px;
+  white-space:normal;
+}
+.kv {
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:10px 20px;
+  padding:18px;
+  background:#e9f7f0;
+  border:1px solid #9ec7ad;
+  border-radius:14px;
+  direction:ltr;
+  text-align:left;
+  margin-block-start:18px;
+  overflow-wrap:anywhere;
+}
+.journey {
+  display:grid;
+  gap:8px;
+  margin-block:18px;
+  counter-reset:journey;
+}
+.journey span {
+  counter-increment:journey;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:12px 16px;
+  border:1px solid #bdcfdb;
+  border-radius:12px;
+  background:#f5f8fb;
+  font-size:17px;
+}
+.journey span::before {
+  content:counter(journey);
+  font-weight:700;
+  color:#075b83;
+}
+.journey .current {
+  border:2px solid #087a9e;
+  background:#e5f5fc;
+  font-weight:700;
+}
+.journeyNote {
+  padding:16px;
+  background:#fff6d3;
+  border:1px solid #d8bd63;
+  border-radius:12px;
+  margin-block:16px;
+  font-size:19px;
+}
+.dataRoute {
+  direction:ltr;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-block:18px;
+  flex-wrap:wrap;
+  justify-content:center;
+  padding:16px;
+  background:#eaf5fa;
+  border-radius:12px;
+}
+.dataRoute b {
+  color:#075b83;
+}
+.dataRoute code {
+  font-size:15px;
+  background:#fff;
+  padding:5px 10px;
+  border:1px solid #b0cbdc;
+}
+.movieGrid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-block-start:20px;
+}
+.movieCard {
+  min-width:0;
+  border:1px solid #b2c3d0;
+  border-radius:14px;
+  padding:18px;
+  background:#f7f9fc;
+}
+.movieCard strong {
+  font-size:19px;
+  display:block;
+}
+.movieCard small {
+  font-size:15px;
+  display:block;
+  color:#485b70;
+  margin-block:6px 12px;
+}
+.movieCard.good {
+  border:2px solid #36875d;
+  background:#edf9f1;
+}
+.movieCard.bad {
+  background:#f6f7f9;
+  opacity:1;
+}
+.checks {
+  display:grid;
+  gap:5px;
+  direction:ltr;
+  text-align:left;
+  font:14px/1.7 ui-monospace,Consolas,monospace;
+  overflow-wrap:anywhere;
+}
+.checks b {
+  direction:rtl;
+  text-align:start;
+  font:700 16px/1.6 Rubik,system-ui,sans-serif;
+  color:#4c5869;
+}
+.good .checks b {
+  color:#17613c;
+}
+.labFeedback {
+  margin-block-start:18px;
+  font-size:18px;
+  line-height:1.75;
+  border-radius:14px;
+}
+.labFeedback:empty {
+  display:none;
+}
+.labFeedback.good {
+  background:#e8f6ed;
+  border:2px solid #438761;
+  color:#175736;
+  padding:16px 18px;
+}
+.labFeedback.bad {
+  background:#fff0ed;
+  border:2px solid #bd6370;
+  color:#892637;
+  padding:16px 18px;
+}
+.labActions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  justify-content:flex-end;
+  margin-block-start:22px;
+  padding-block-start:20px;
+  border-block-start:1px solid #d7e2eb;
+}
+.summaryTopics {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-block:22px;
+}
+.summaryTopics div {
+  padding:16px;
+  border:1px solid #b9cedb;
+  background:#edf6fa;
+  border-radius:12px;
+  color:#243e56;
+}
+.sendState {
+  margin-block:16px;
+  color:#244963;
+  font-size:17px;
+}
+.labFooter {
+  text-align:center;
+  margin-block:24px 0;
+}
+.labFooter::first-letter {
+  color:#087a9e;
+}
+@keyframes labAppear {
+  from {
+    opacity:0;
+    transform:translateY(5px);
+  }
+  to {
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+@media(max-width:850px) {
+  .labTabs {
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  html[data-theme] .movieLabPage .labTabs .btn {
+    flex-direction:row;
+    justify-content:flex-start;
+    padding:10px;
+    font-size:15px;
+    text-align:start;
+  }
+  .labTabs .stepNumber {
+    flex:none;
+  }
+  .labProgress {
+    grid-template-columns:1fr auto;
+  }
+  .progressTrack {
+    grid-column:1/-1;
+    grid-row:2;
+  }
+  .matchChoices {
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:540px) {
+  .labHeader {
+    padding:18px 18px 24px;
+  }
+  .headerInner {
+    font-size:14px;
+    align-items:flex-start;
+  }
+  .labBrand {
+    max-width:115px;
+  }
+  .labHero {
+    align-items:flex-start;
+    gap:12px;
+    margin-block-start:24px;
+  }
+  .heroIcon {
+    inline-size:48px;
+    block-size:54px;
+    border-radius:16px;
+    font-size:30px;
+  }
+  .labHero h1 {
+    font-size:26px;
+  }
+  .labHero p:last-child {
+    font-size:16px;
+  }
+  .eyebrow {
+    font-size:13px;
+  }
+  .movieLab.container {
+    padding:18px 12px;
+  }
+  html[data-theme] .movieLabPage .card {
+    padding:20px 16px;
+    border-radius:18px;
+  }
+  html[data-theme] .movieLabPage .card h2 {
+    font-size:27px;
+  }
+  .identity,.filterControls,.movieGrid,.summaryTopics {
+    grid-template-columns:1fr;
+  }
+  .labProgress {
+    padding:14px;
+    gap:12px;
+  }
+  .progressNumbers {
+    gap:6px;
+  }
+  .labTabs {
+    grid-template-columns:1fr;
+  }
+  html[data-theme] .movieLabPage .labTabs .btn {
+    font-size:16px;
+  }
+  .moduleNavigator summary .mini {
+    display:block;
+    margin-inline-start:20px;
+  }
+  .labActions .btn {
+    flex:1 1 100%;
+  }
+  .matchRow {
+    padding:14px 10px;
+  }
+  .answerChoice,.option {
+    padding:12px;
+    font-size:18px;
+  }
+  .codeBox {
+    padding:14px 12px;
+    font-size:16px;
+  }
+  .flowRow {
+    gap:8px;
+    padding:10px;
+  }
+  .moveButtons {
+    flex-direction:column;
+  }
+  .flowText {
+    font-size:17px;
+  }
+  .dataRoute {
+    gap:5px;
+    padding:12px;
+  }
+  .dataRoute code {
+    padding:4px 6px;
+    font-size:14px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html[data-theme] .movieLabPage *,html[data-theme] .movieLabPage *::before,html[data-theme] .movieLabPage *::after {
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+}
+.srOnly {
+  position:absolute!important;
+  inline-size:1px!important;
+  block-size:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip-path:inset(50%)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+/* Keep mixed-language journey text in one wrapping paragraph, not flex items. */
+.journey>span {
+  display:block;
+  overflow-wrap:anywhere;
+}
+.journey>span::before {
+  display:inline-block;
+  margin-inline-end:12px;
+}
+.skipLink:not(:focus) {
+  clip-path:inset(50%);
+  inline-size:1px;
+  block-size:1px;
+  overflow:hidden;
+  padding:0;
+}
+/* Once learning starts, give the activity more room than the welcome banner. */
+.labStarted .labHeader {
+  padding-block-end:18px;
+}
+.labStarted .labHero {
+  margin-block-start:16px;
+  gap:14px;
+}
+.labStarted .labHero h1 {
+  font-size:22px;
+  margin:0;
+}
+.labStarted .labHero p {
+  display:none;
+}
+.labStarted .heroIcon {
+  inline-size:44px;
+  block-size:44px;
+  font-size:27px;
+  border-radius:14px;
+}
+@media(max-width:540px) {
+  .labStarted .labHero h1 {
+    font-size:20px;
+  }
+}

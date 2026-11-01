@@ -8,16 +8,21 @@
   <link rel="stylesheet" href="css/style.css?v=5"><link rel="stylesheet" href="css/movie-lab.css">
   <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('mindplay-theme')||'dark')</script>
 </head>
-<body data-group="projects_y3">
-<header class="top"><button id="themeToggle" aria-label="החלף ערכת צבעים">◐</button><a class="link topBack" href="./category.html?group=projects_y3">חזרה לתרגול שנה ג׳</a><h1>🎬 מעבדת ארכיטקטורה – ממליץ הסרטים</h1><p class="sub">לומדים לעקוב אחרי המידע: HTML ← Flask ← Python ← JSON</p></header>
-<main class="container movieLab">
-  <section id="intro" class="card labIntro"><h2>לפני שמתחילים</h2><p>נבקש רק שם ומספר קבוצה. ההתקדמות נשמרת במחשב הזה עד שתבחרו לשלוח סיכום למורה.</p><div class="identity"><label>שם התלמיד/ה המלא <input id="studentId" maxlength="60" autocomplete="name" placeholder="למשל: נועה כהן" required></label><label>מספר קבוצה <input id="studentClass" inputmode="numeric" pattern="[0-9]+" maxlength="8" placeholder="למשל: 3" required></label></div><div id="identityFeedback" class="labFeedback" aria-live="polite"></div><button id="startLab" class="btn btnGreen">מתחילים במעבדה ←</button><p class="mini">אין צורך במספר טלפון, כתובת או סיסמה.</p></section>
-  <section id="lab" hidden>
-    <div class="labProgress"><div><strong id="progressText">0 / 21</strong><span id="scoreText">0 נקודות</span></div><div class="progressTrack"><div id="progressBar"></div></div><button id="restartLab" class="btn btnGhost">התחלה מחדש</button></div>
-    <nav id="moduleTabs" class="labTabs" aria-label="מודולי המעבדה"></nav>
-    <section class="card"><div class="labMeta"><span id="topicBadge" class="badge"></span><span id="questionCount"></span></div><h2 id="questionTitle"></h2><p id="objective" class="mini"></p><div id="activity" class="activity" aria-live="polite"></div><div id="feedback" class="labFeedback" aria-live="polite"></div><div class="labActions"><button id="checkAnswer" class="btn btnGreen">בדקו את התשובה</button><button id="nextQuestion" class="btn" hidden>לשאלה הבאה ←</button></div></section>
+<body data-group="projects_y3" class="movieLabPage">
+<a class="skipLink" href="#mainContent">דלגו לתוכן המעבדה</a>
+<header class="labHeader">
+  <div class="headerInner"><a class="labBack" href="./category.html?group=projects_y3">→ חזרה לתרגול שנה ג׳</a><span class="labBrand">MindPlay <span aria-hidden="true">✦</span> לומדים דרך משחק</span></div>
+  <div class="labHero"><span class="heroIcon" aria-hidden="true">🎬</span><div><p class="eyebrow">משימת שנה ג׳ · 21 פעילויות קצרות</p><h1>מאחורי הקלעים של ממליץ הסרטים</h1><p>מהבחירה שלכם בטופס ועד להמלצה על המסך. בואו נגלֶה איך המידע זז!</p></div></div>
+</header>
+<main id="mainContent" class="container movieLab">
+  <section id="intro" class="card labIntro" aria-labelledby="introTitle"><span class="sectionKicker">כרטיס הכניסה שלכם למעבדה</span><h2 id="introTitle">מוכנים לצאת למסע? 🚀</h2><p>בונים טופס, עוקבים אחרי בקשה ומגלים איך קוד בוחר סרט. בכל תחנה מנסים, בודקים ולומדים.</p><div class="introChips"><span>7 תחנות בדרך</span><span>מתקדמים בקצב שלכם</span><span>אפשר לחזור ולתרגל</span></div><div class="identity"><label for="studentId">שם פרטי ושם משפחה<input id="studentId" maxlength="60" autocomplete="name" placeholder="למשל: נועה כהן" aria-describedby="identityFeedback" required></label><label for="studentClass">מספר קבוצה<input id="studentClass" inputmode="numeric" pattern="[0-9]+" maxlength="8" placeholder="למשל: 3" aria-describedby="identityFeedback" required></label></div><div id="identityFeedback" class="labFeedback" aria-live="polite"></div><button id="startLab" class="btn btnGreen">יוצאים לדרך ←</button><p class="privacyNote">🔒 מבקשים רק שם ומספר קבוצה. ההתקדמות נשמרת בדפדפן הזה, והסיכום נשלח למורה רק כשתבחרו לשלוח.</p></section>
+  <section id="lab" hidden aria-label="פעילויות המעבדה">
+    <div class="labProgress"><div class="progressNumbers"><strong id="progressText">0 / 21 הושלמו</strong><span id="scoreText">0 נקודות</span></div><div class="progressTrack" role="progressbar" aria-label="פעילויות שהושלמו" aria-valuemin="0" aria-valuemax="21" aria-valuenow="0"><div id="progressBar"></div></div><button id="restartLab" class="btn btnGhost">התחלה מחדש</button></div>
+    <details class="moduleNavigator" id="moduleNavigator" open><summary><span id="moduleSummary">מפת המסע · 7 תחנות</span><span class="mini">בחרו תחנה ⌄</span></summary><nav id="moduleTabs" class="labTabs" aria-label="תחנות המעבדה"></nav></details>
+    <section class="card questionCard" aria-labelledby="questionTitle"><div class="labMeta"><span id="topicBadge" class="badge"></span><span id="questionCount"></span></div><h2 id="questionTitle" tabindex="-1"></h2><p id="objective"></p><div id="activity" class="activity"></div><div id="feedback" class="labFeedback" role="status" aria-live="polite" tabindex="-1"></div><div class="labActions"><button id="checkAnswer" class="btn btnGreen">בדקו את התשובה ✓</button><button id="retryAnswer" class="btn btnGhost" hidden>ננסה שוב</button><button id="nextQuestion" class="btn" hidden>לפעילות הבאה ←</button></div></section>
   </section>
-  <section id="completion" class="card" hidden></section>
+  <section id="completion" class="card" hidden aria-label="סיכום המעבדה"></section>
+  <p class="labFooter">✦ MindPlay · כל ניסיון הוא עוד צעד בדרך להבנה</p>
 </main>
-<script src="js/movie-lab.js"></script><script src="js/theme.js"></script>
+<script src="js/movie-lab.js"></script>
 </body></html>
