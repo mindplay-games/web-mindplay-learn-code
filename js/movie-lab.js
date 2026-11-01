@@ -1,7 +1,7 @@
 /* Interactive browser simulation of the Year C Flask movie project. No Python runs on GitHub Pages. */
 (() => {
   const STORE = 'mindplay.movieArchitectureLab.v1';
-  const APPS_SCRIPT_URL = ''; // Paste your deployed Google Apps Script /exec URL here (or configure at build time).
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxK8N29Z_aOv2O7IfUeYlKrdtbPcsghfJy_M-82ojuFCV7I4Ll96FVC9LSm3jKuelc6YQ/exec'; 
   const movies = [
     {name:'Shrek',type:'movie',genre:'comedy',length:90,emoji:'🧅'}, {name:'Toy Story',type:'movie',genre:'animation',length:81,emoji:'🧸'},
     {name:'The Incredibles',type:'movie',genre:'action',length:115,emoji:'🦸'}, {name:'Spirited Away',type:'movie',genre:'fantasy',length:125,emoji:'🐉'},
