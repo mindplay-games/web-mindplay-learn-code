@@ -1981,5 +1981,12 @@ while True:
     ]
   }
 },
-
+  {
+    id: "movie_architecture_lab",
+    group: "projects_y3",
+    mode: "movieLab",
+    topic: "Flask • ארכיטקטורה",
+    title: "מעבדת ארכיטקטורה – ממליץ הסרטים",
+    subtitle: "גלו איך מידע עובר מטופס HTML לשרת Flask, איך משתנים שומרים את המידע ואיך מאגר JSON עוזר למצוא סרט מתאים."
+  }
 ];

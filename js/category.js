@@ -16,7 +16,7 @@ function makeTile(ch, groupFromPage) {
   const a = document.createElement("a");
   a.className = "tile";
 
-  const page = (ch.mode === "practiceOnly") ? "practice.html" : "challenge.html";
+  const page = ch.mode === "movieLab" ? "movie-lab.html" : (ch.mode === "practiceOnly" ? "practice.html" : "challenge.html");
   const g = ch.group ?? groupFromPage ?? "";
   const groupPart = g ? `&group=${encodeURIComponent(g)}` : "";
 

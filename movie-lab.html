@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>מעבדת ארכיטקטורה – ממליץ הסרטים</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=5"><link rel="stylesheet" href="css/movie-lab.css">
+  <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('mindplay-theme')||'dark')</script>
+</head>
+<body data-group="projects_y3">
+<header class="top"><button id="themeToggle" aria-label="החלף ערכת צבעים">◐</button><a class="link topBack" href="./category.html?group=projects_y3">חזרה לתרגול שנה ג׳</a><h1>🎬 מעבדת ארכיטקטורה – ממליץ הסרטים</h1><p class="sub">לומדים לעקוב אחרי המידע: HTML ← Flask ← Python ← JSON</p></header>
+<main class="container movieLab">
+  <section id="intro" class="card labIntro"><h2>לפני שמתחילים</h2><p>נבקש רק שם ומספר קבוצה. ההתקדמות נשמרת במחשב הזה עד שתבחרו לשלוח סיכום למורה.</p><div class="identity"><label>שם התלמיד/ה המלא <input id="studentId" maxlength="60" autocomplete="name" placeholder="למשל: נועה כהן" required></label><label>מספר קבוצה <input id="studentClass" inputmode="numeric" pattern="[0-9]+" maxlength="8" placeholder="למשל: 3" required></label></div><div id="identityFeedback" class="labFeedback" aria-live="polite"></div><button id="startLab" class="btn btnGreen">מתחילים במעבדה ←</button><p class="mini">אין צורך במספר טלפון, כתובת או סיסמה.</p></section>
+  <section id="lab" hidden>
+    <div class="labProgress"><div><strong id="progressText">0 / 21</strong><span id="scoreText">0 נקודות</span></div><div class="progressTrack"><div id="progressBar"></div></div><button id="restartLab" class="btn btnGhost">התחלה מחדש</button></div>
+    <nav id="moduleTabs" class="labTabs" aria-label="מודולי המעבדה"></nav>
+    <section class="card"><div class="labMeta"><span id="topicBadge" class="badge"></span><span id="questionCount"></span></div><h2 id="questionTitle"></h2><p id="objective" class="mini"></p><div id="activity" class="activity" aria-live="polite"></div><div id="feedback" class="labFeedback" aria-live="polite"></div><div class="labActions"><button id="checkAnswer" class="btn btnGreen">בדקו את התשובה</button><button id="nextQuestion" class="btn" hidden>לשאלה הבאה ←</button></div></section>
+  </section>
+  <section id="completion" class="card" hidden></section>
+</main>
+<script src="js/movie-lab.js"></script><script src="js/theme.js"></script>
+</body></html>
