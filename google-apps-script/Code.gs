@@ -1,17 +1,20 @@
-/* Required Script Properties: SPREADSHEET_ID (private Sheet) and TEACHER_EMAIL. */
-const MAX_BODY=30000, MAX_RESULTS=25, SUBMISSIONS='Student Submissions', DETAILS='Detailed Answers', LOG='Notification Log';
-function setupSheets(){const b=SpreadsheetApp.openById(required_('SPREADSHEET_ID'));ensure_(b,SUBMISSIONS,['Submission ID','Student name','Group number','Submission date','Submission time','Total score','Maximum score','Percentage','Correct answers','Incorrect answers','Total attempts','Duration (seconds)','Topics requiring improvement','Completion status']);ensure_(b,DETAILS,['Submission ID','Student name','Group number','Question ID','Question topic','Student answer','Correct answer','Correct/incorrect','Number of attempts','Score awarded']);ensure_(b,LOG,['Time','Submission ID','Status','Details']);}
+/* Required Script Properties: SPREADSHEET_URL (private Sheet URL) and TEACHER_EMAIL. */
+const MAX_BODY=30000, MAX_RESULTS=7, SUBMISSIONS='Student Submissions', DETAILS='Detailed Answers', LOG='Notification Log';
+function getSpreadsheet_(){return SpreadsheetApp.openByUrl(required_('SPREADSHEET_URL'));}
+function testSpreadsheetConnection(){getSpreadsheet_();return true;}
+function setupSheets(){const b=getSpreadsheet_();ensure_(b,SUBMISSIONS,['Submission ID','Student name','Group number','Submission date','Submission time','Total score','Maximum score','Percentage','Correct answers','Incorrect answers','Total attempts','Duration (seconds)','Topics requiring improvement','Completion status']);ensure_(b,DETAILS,['Submission ID','Student name','Group number','Question ID','Question topic','Student answer','Correct answer','Correct/incorrect','Number of attempts','Score awarded']);ensure_(b,LOG,['Time','Submission ID','Status','Details']);}
 // Public GET never returns records, spreadsheet URLs, names, or submission status.
 function doGet(){return reply_({ok:false,error:'method_not_allowed'});}
 function doPost(e){
   const lock=LockService.getScriptLock();
+  let locked=false;
   try{
-    lock.waitLock(10000);
+    lock.waitLock(10000);locked=true;
     const raw=e&&e.postData&&e.postData.contents||'';
     if(!raw||raw.length>MAX_BODY)return reply_({ok:false,error:'invalid_payload'});
-    const d=JSON.parse(raw);
+    let d;try{d=JSON.parse(raw)}catch(_){return reply_({ok:false,error:'invalid_json'})}
     if(!valid_(d))return reply_({ok:false,error:'invalid_payload'});
-    const b=SpreadsheetApp.openById(required_('SPREADSHEET_ID'));
+    const b=getSpreadsheet_();
     setupSheets();
     const main=b.getSheetByName(SUBMISSIONS), detail=b.getSheetByName(DETAILS);
     const exists=main.getLastRow()>1&&main.getRange(2,1,main.getLastRow()-1,1).getValues().flat().includes(d.submissionId);
@@ -31,10 +34,13 @@ function doPost(e){
     // Summary is the durable email claim: retries never send another email.
     // A crash after commit can lose a notification; exactly-once email is not
     // transactional with Sheets/MailApp. Prefer no duplicate mail over replay.
-    try{notify_(d,b.getUrl());}catch(mailError){b.getSheetByName(LOG).appendRow([new Date(),d.submissionId,'email_failed',safe_(mailError.message,500)]);}
+    let status='email_sent';
+    try{notify_(d,b.getUrl());}catch(_){status='email_failed';}
+    // A failed notification/log must never invalidate the committed submission.
+    try{b.getSheetByName(LOG).appendRow([new Date(),d.submissionId,status,status==='email_sent'?'Teacher notification sent':'Notification failed; check Apps Script execution privately']);}catch(_){}
     return reply_({ok:true,submissionId:d.submissionId,duplicate:false});
   }catch(err){return reply_({ok:false,error:'server_error'});}
-  finally{try{lock.releaseLock();}catch(_){}}
+  finally{if(locked){try{lock.releaseLock();}catch(_){}}}
 }
 function notify_(d,url){const body=['התקבלה הגשה חדשה במעבדת ארכיטקטורה – ממליץ הסרטים.','',`תלמיד/ה: ${safe_(d.studentName,60)}`,`קבוצה: ${safe_(d.groupNumber,8)}`,`ציון: ${d.score}/${d.maxScore} (${d.percentage}%)`,`משך: ${d.durationSeconds} שניות`,`נושאים לתרגול: ${d.topicsForImprovement.join(', ')||'אין'}`,`גיליון פרטי: ${url}`].join('\n');MailApp.sendEmail(required_('TEACHER_EMAIL'),'תרגול שנה ג׳ – הגשה חדשה',body);}
 function valid_(d){
@@ -42,11 +48,12 @@ function valid_(d){
   const text=(v,max)=>typeof v==='string'&&v.length<=max;
   if(!d||!text(d.submissionId,100)||!/^[a-zA-Z0-9-]{10,100}$/.test(d.submissionId)||!text(d.studentName,60)||d.studentName.trim().split(/\s+/).length<2)return false;
   if(!integer(d.groupNumber,0,99999999)||!text(d.submittedAt,40)||!Number.isFinite(Date.parse(d.submittedAt))||d.completionStatus!=='completed')return false;
-  if(!Array.isArray(d.results)||!integer(d.maxScore,1,MAX_RESULTS)||d.results.length!==d.maxScore||!integer(d.score,0,d.maxScore)||!integer(d.totalAttempts,1,1000)||!integer(d.durationSeconds,0,31536000))return false;
+  if(!Array.isArray(d.results)||d.maxScore!==MAX_RESULTS||d.results.length!==d.maxScore||!integer(d.score,0,d.maxScore)||!integer(d.totalAttempts,1,1000)||!integer(d.durationSeconds,0,31536000))return false;
   if(!Array.isArray(d.topicsForImprovement)||d.topicsForImprovement.length>MAX_RESULTS||!d.topicsForImprovement.every(t=>text(t,100)))return false;
+  const expectedIds=['arch_frontend','html_name','post_order','request_key','json_key','and_operator','response_debug'];
   const ids=new Set();
   for(const r of d.results){
-    if(!r||!text(r.id,100)||!r.id||ids.has(r.id)||!text(r.topic,100)||!text(r.answer,500)||!text(r.expected,500)||!integer(r.attempts,1,1000)||!integer(r.score,0,1)||r.correct!==(r.score===1))return false;
+    if(!r||!text(r.id,100)||!expectedIds.includes(r.id)||ids.has(r.id)||!text(r.topic,100)||!text(r.answer,500)||!text(r.expected,500)||!integer(r.attempts,1,1000)||!integer(r.score,0,1)||r.correct!==true||(r.attempts===1&&r.score!==1))return false;
     ids.add(r.id);
   }
   return d.score===d.results.reduce((n,r)=>n+r.score,0)&&d.totalAttempts===d.results.reduce((n,r)=>n+r.attempts,0)&&d.correctAnswers===d.score&&d.incorrectAnswers===d.maxScore-d.score&&d.percentage===Math.round(d.score/d.maxScore*100);

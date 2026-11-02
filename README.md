@@ -8,42 +8,30 @@
 
 מאגר הסרטים המקורי בן 50 הרשומות לא נמצא בריפו. לכן הסימולטור משתמש ב־fixture חינוכי קטן, שמסומן כך גם בממשק. אין שינוי בפרויקט Flask המקורי של התלמידים.
 
-## Google Sheets ודיוור למורה — הגדרה ידנית נדרשת
+## Seven-question lab and Google reporting — prepared on main, not deployed
 
-הקובץ `google-apps-script/Code.gs` יוצר אוטומטית שני גיליונות פרטיים: `Student Submissions` ו־`Detailed Answers`, וכן `Notification Log` לשגיאות דיוור. הוא שומר כל submission ID פעם אחת בלבד, מנקה ניסיון להזרקת נוסחאות, מגביל payload, ומנסה לשלוח מייל רק אחרי שהנתונים נשמרו. כשל במייל נרשם בלוג ואינו מוחק הגשה.
+Exactly seven questions remain, one per topic: architecture, HTML form, POST journey, request.form, JSON, filtering and response/debugging. Incorrect answers block Next and future-topic tabs. Students must correct them; the first attempt alone earns 0 or 1 point, maximum 7. Submission starts only after all seven correct completions. A separate v2.seven localStorage key leaves legacy 21-activity progress intact, but does not import it into a new seven-question attempt. New attempts have new stable IDs. Retry/reload preserves the frozen payload and its ID.
 
-1. צרו Google Sheet פרטי. העתיקו את מזהה הגיליון מתוך כתובת הדפדפן.
-2. בחרו Extensions → Apps Script, החליפו את הקוד בתוכן `google-apps-script/Code.gs` ושמרו.
-3. ב־Project Settings → Script properties הוסיפו `SPREADSHEET_ID` ואת `TEACHER_EMAIL` של המורה.
-4. הריצו פעם אחת את `setupSheets` מתוך העורך ואשרו הרשאות Google. ודאו שנוצרו שלושת הגיליונות.
-5. בחרו Deploy → New deployment → Web app. הגדירו את החשבון שמריץ את הסקריפט לחשבון המורה. מדיניות הגישה חייבת לאפשר לתלמידי האתר לשלוח POST; שמרו את כתובת ה־`/exec`.
-6. הדביקו את כתובת ה־`/exec` במשתנה `APPS_SCRIPT_URL` בראש `js/movie-lab.js`. אל תכניסו שם אימייל, מזהה גיליון או סוד.
-7. פרסמו את האתר, השלימו הגשה ניסיונית, ובדקו שורה ב־`Student Submissions`, שורות ב־`Detailed Answers` ומייל למורה.
+### Actual supplied backend comparison
 
-לפני ההגדרה, הכפתור אינו שולח דבר והתוצאות נשמרות מקומית בלבד. במקרה כשל רשת מוצגת אפשרות לנסות שוב והסיכום נשאר בדפדפן. אין לטעון שהמערכת עובדת עד לבדיקת ההגשה האמיתית מול החשבון שלכם.
+The owner supplied current Code.gs in chat on 2026-11-02. It uses direct JSON POST/ContentService, not an HTML bridge, and already acknowledges matching submission IDs after detail/summary flushes. It uses openByUrl(), duplicate-ID locking, partial-detail repair and teacher email. Its validator ties final correctness to first-attempt score (`r.correct !== (r.score === 1)`), which rejects corrected zero-point answers. The prepared replacement separates these meanings, requires exactly the seven known question IDs, retains numeric group numbers and detailed answers, and ensures mail/log failures do not invalidate saved submissions. Summary correct/incorrect counts describe first-attempt scoring; every final detailed answer is correct on completion.
 
-### פרטיות ומגבלות
+The replacement retains openByUrl() but moves the private spreadsheet URL to the SPREADSHEET_URL Script Property; no private spreadsheet address is included in frontend code or this report. TEACHER_EMAIL remains a Script Property. GET returns only method_not_allowed. No spreadsheet records were read. Source comparison uses the owner's supplied code; the live deployed revision could not be independently confirmed (the network proxy returned HTTP 403).
 
-נאספים רק שם מלא ומספר קבוצה. שמרו את הגיליון פרטי, הגדירו מדיניות מחיקה לפי צרכי בית הספר, ואל תשתפו קישור עריכה. כתובת Web App ציבורית אינה מאמתת זהות תלמיד/ה ואינה הגנת ספאם מלאה; להגנה חזקה דרוש backend מאומת. ללא רשימת תלמידים אין דרך להסיק מי לא השלים.
+### Exact deployment steps — perform only after approval
 
-### Submission protocol and verification (2026-11-01)
+1. In the existing Apps Script project, back up current Code.gs. Replace it with the complete `google-apps-script/Code.gs` from this checkout. No HTML bridge file is required by this direct POST protocol. If additional deployed HTML/bridge files exist outside the supplied source, review them before changing the transport.
+2. Project Settings → Script properties: preserve TEACHER_EMAIL. Add SPREADSHEET_URL using the same private spreadsheet URL from your existing getSpreadsheet_ implementation. No SPREADSHEET_ID property is needed. Do not paste private addresses into frontend code.
+3. Save; run testSpreadsheetConnection, then setupSheets as the teacher and authorize Sheets/Mail permissions. These functions do not submit student records or print spreadsheet details. Confirm the three reporting tabs exist privately. Keep spreadsheet General access Restricted and do not publish it to the web.
+4. Deploy → Manage deployments → select the deployment corresponding to the configured /exec URL → Edit (pencil) → Version: New version → Deploy. Execute as the teacher, with access allowing the intended students to invoke it. Update this existing deployment so the configured URL stays unchanged. Do not create an unrelated deployment.
+5. After separate frontend publishing approval, publish the reviewed main changes. The configured endpoint is https://script.google.com/macros/s/AKfycbxWOPCAziceEkGdFPrq4EctjIeafEUvSic6GctWXJPjoyjboD-Frx6kuFMDyGGwaaX5aQ/exec .
+6. From the actual site origin, use only Fictional Student and group 123. Make a wrong attempt then correct it; confirm Next stays blocked until correct and that point stays zero. Complete all seven. Confirm one automatic POST, readable JSON with ok:true and the exact submissionId, one summary row, seven detailed rows and one teacher email. Confirm no POST after only six correct completions. Do not report private row contents.
+7. Reload and retry the saved submission; verify the same ID/body, duplicate:true, no additional rows or email. Simulate a lost/offline response: no success message, frozen retry data retained. Never replace CORS with no-cors. If the response is unreadable after Google's redirect, direct transport remains unverified and needs an approved transport fix before classroom use.
 
-The configured `/exec` endpoint is already present in `js/movie-lab.js`. The frontend sends a CORS POST with `Content-Type: text/plain;charset=utf-8`, omits credentials, and follows redirects. This avoids an application/json preflight; it does **not** bypass CORS. Apps Script ContentService redirects to `script.googleusercontent.com`. The final response must be readable JSON with `ok: true` and the exact `submissionId`. An opaque response, login HTML, timeout, HTTP error, or mismatched acknowledgement never confirms success. Do not switch to `no-cors` as a workaround.
+### Tests and limits
 
-Before sending, the browser persists a frozen payload in localStorage. Retries (including after reload) reuse its ID, timestamp, duration, scores and answers. Group number is sent as a JSON number; leading zeroes are normalized. Answers preserve their original text; spreadsheet formula escaping happens on the server. Resetting the lab deliberately deletes its local results and creates a new submission identity. Local results are specific to this browser and origin; clearing browser storage removes them.
+Run all available tests: `node tests/movie-submission.cjs` and `python tests/movie-lab-ui.py`. The Node suite uses in-memory Sheets, MailApp and fetch doubles. Chromium tests run the real local UI with fictional identities; all external traffic is blocked except intercepted Apps Script requests answered with mocked JSON. They cover seven-question maximum, first-attempt full score, incorrect retries scoring zero, navigation locks, no early POST, automatic completion, reload persistence, matching-ID confirmation and duplicate retries. Syntax and git diff whitespace checks also run.
 
-The server validates field types and score/attempt totals, writes details first and summary last under a script lock, and repairs incomplete details on retry. A committed summary suppresses subsequent writes and email attempts. Email delivery is at most once per ID: a crash after saving but before sending can lose the notification. MailApp and Sheets cannot provide transactional exactly-once delivery. Existing rows written by an older deployment are considered committed; inspect their detail rows manually if an older attempt failed partway through.
+No real Google submission, Sheets write/read or email delivery was tested. Live CORS, Google permissions, delivery and spreadsheet privacy require the manual checks above. The supplied source was compared, but the deployed revision remains independently unverified. Email is attempted at most once per committed ID; a crash after save can lose a notification. Existing older committed IDs are treated as saved; inspect historical partial records privately if needed. Client-side grading is educational, not tamper-proof identity or exam authentication.
 
-`doGet` returns only `method_not_allowed`; neither success nor failure responses include records or spreadsheet URLs. This source review does not verify the deployed version or spreadsheet sharing. `setupSheets` creates tabs in the configured spreadsheet; it does not make the spreadsheet private. The owner must set General access to **Restricted**, check individual sharing, and ensure the sheet is not published to the web.
-
-Local verification: `node tests/movie-submission.cjs` runs five fictional-data tests of the frontend submission function and Apps Script with in-memory service doubles. These are not Google Sheets tests. A local Chromium smoke test also exercised all 21 answer records, failure preservation, numeric group number, and identical retry with mocked endpoint responses. JavaScript syntax checks passed. No live submission was sent: the cloud proxy denied `script.google.com` with HTTP 403 before reaching Google. Live redirect/CORS behavior and spreadsheet privacy remain unverified.
-
-Pending owner-approved deployment and manual test:
-
-1. Review both code changes together. The new frontend requires the matching-ID acknowledgement from the new Apps Script source; the previous `{ok:true}` response is intentionally unconfirmed. No changes have been committed, pushed, or deployed.
-2. After approving deployment, update the existing Apps Script deployment to the reviewed code and publish the frontend. Keep the spreadsheet private while allowing the intended students to invoke the Web App.
-3. From the actual GitHub Pages origin, use only a fictional full name and numeric group. Confirm the POST follows Google's redirect and returns readable JSON with the matching ID. Confirm exactly one summary row, all detailed answers, matching scores and one teacher email.
-4. Retry the same saved submission, then reload and retry. Verify the same ID and payload, no extra summary/detail rows, and no extra email. Simulate a lost/offline response; the browser must retain results and permit retry without claiming confirmed success.
-5. Signed out, verify `/exec` and GET requests with query parameters return no student data. Verify the spreadsheet's General access is Restricted and it is not published to the web. Do not include real records in test reports.
-
-The integration remains **not live-verified** until the owner confirms the Sheet rows, details, notification and privacy settings. Access to the owner's Google account or spreadsheet is not required for the local tests.
+No commit, push or deployment has been performed.
