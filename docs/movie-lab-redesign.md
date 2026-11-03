@@ -1,3 +1,5 @@
+> Historical design notes for the earlier 21-activity version. Current behavior is seven questions and a prefilled Google Form for the student to review and submit; see [current flow](movie-lab-google-forms.md). The original visual design remains.
+
 # Movie Architecture Lab redesign
 
 The lab uses a dedicated light workspace with MindPlay cyan, yellow and rounded cards. Other site pages and the saved site theme are unchanged. The welcome banner becomes compact during activities so the question has the strongest visual emphasis. The reading width is capped at 1000px inside a 1048px padded container.

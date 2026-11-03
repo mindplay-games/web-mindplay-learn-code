@@ -1,54 +1,74 @@
+/* Local tests only. New-tab navigation is mocked; nothing is submitted to Google. */
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const vm=require('node:vm');
 const fs=require('node:fs');
-const ids=['arch_frontend','html_name','post_order','request_key','json_key','and_operator','response_debug'];
-const payload=()=>({submissionId:'fictional-test-0001',studentName:'Fictional Student',groupNumber:123,submittedAt:'2026-11-01T10:00:00Z',score:7,maxScore:7,percentage:100,correctAnswers:7,incorrectAnswers:0,totalAttempts:7,durationSeconds:60,topicsForImprovement:[],completionStatus:'completed',results:ids.map(id=>({id,topic:'test',answer:'=fictional()',expected:'example',correct:true,attempts:1,score:1}))});
-function backend(){
- const sheets=new Map();let mails=0,failDetail=false,failMain=false,failMail=false,failLog=false;
- function sheet(){const rows=[];return {rows,getLastRow:()=>rows.length,appendRow:r=>{if(failLog&&['email_failed','email_sent'].includes(r[2]))throw Error('log');if(failMain&&r[0]==='fictional-test-0001')throw Error('write');rows.push(r)},setFrozenRows(){},deleteRow:n=>rows.splice(n-1,1),getRange:(row,col,n=1)=>({setFontWeight(){},getValues:()=>rows.slice(row-1,row-1+n).map(r=>[r[col-1]]),setValues:values=>{if(failDetail){rows.push(values[0]);throw Error('partial write')}values.forEach(r=>rows.push(r))}})}}
- const book={getSheetByName:n=>sheets.get(n),insertSheet:n=>{const s=sheet();sheets.set(n,s);return s},getUrl:()=> 'private-url'};
- const ctx=vm.createContext({LockService:{getScriptLock:()=>({waitLock(){},releaseLock(){}})},SpreadsheetApp:{openByUrl:()=>book,flush(){}},PropertiesService:{getScriptProperties:()=>({getProperty:()=> 'configured'})},Session:{getScriptTimeZone:()=> 'UTC'},Utilities:{formatDate:()=> 'date'},MailApp:{sendEmail:()=>{if(failMail)throw Error('mail');mails++}},ContentService:{MimeType:{JSON:'json'},createTextOutput:s=>({setMimeType:()=>JSON.parse(s)})}});
- vm.runInContext(fs.readFileSync('google-apps-script/Code.gs','utf8'),ctx);
- return {ctx,sheets,mails:()=>mails,failDetail:v=>failDetail=v,failMain:v=>failMain=v,failMail:v=>failMail=v,failLog:v=>failLog=v,post:d=>ctx.doPost({postData:{contents:JSON.stringify(d)}})};
-}
-test('fictional submission commits details, escapes formulas, numeric group and acknowledges ID; retry sends no duplicate email',()=>{const b=backend(),d=payload();assert.equal(b.post(d).submissionId,d.submissionId);assert.equal(b.post(d).duplicate,true);assert.equal(b.mails(),1);assert.equal(b.sheets.get('Student Submissions').rows.length,2);const row=b.sheets.get('Detailed Answers').rows[1];assert.equal(row[2],123);assert.equal(row[5],"'=fictional()");assert.equal(row[6],'example');assert.equal(b.ctx.safe_('\t=fictional()',500),"' =fictional()");});
-test('partial detail and summary failures recover without duplicate rows or emails',()=>{for(const kind of ['failDetail','failMain']){const b=backend();b[kind](true);assert.equal(b.post(payload()).ok,false);assert.equal(b.mails(),0);b[kind](false);assert.equal(b.post(payload()).ok,true);assert.equal(b.sheets.get('Detailed Answers').rows.length,8);assert.equal(b.sheets.get('Student Submissions').rows.length,2);assert.equal(b.mails(),1);}});
-test('invalid data rejected and public GET exposes no records',()=>{const b=backend();for(const patch of [{groupNumber:'123'},{score:8},{totalAttempts:8},{submittedAt:'bad'},{results:[]},{topicsForImprovement:null}])assert.equal(b.post({...payload(),...patch}).ok,false);assert.equal(JSON.stringify(b.ctx.doGet()),'{"ok":false,"error":"method_not_allowed"}');});
+const vm=require('node:vm');
 const source=fs.readFileSync('js/movie-lab.js','utf8');
-function frontend(fetch){const elements={sendState:{},sendResults:{}};let saved;const state={studentId:'Fictional Student',studentClass:'123',submissionId:'fictional-test-0001',startedAt:Date.now(),answers:Object.fromEntries(ids.map(id=>[id,{correct:true,score:1,attempts:1,topic:'test',answer:'=fictional()',expected:'example'}]))};const ctx=vm.createContext({state,questions:ids.map(id=>({id})),allAnswered:()=>true,APPS_SCRIPT_URL:'https://example.test/exec',$:id=>elements[id],save:()=>{saved=JSON.stringify(state)},clean:(v,n)=>String(v??'').slice(0,n),fetch,AbortSignal});vm.runInContext(source.slice(source.indexOf('let sending = false;'),source.indexOf("  $('startLab').onclick")),ctx);return {ctx,state,elements,saved:()=>saved};}
-test('failed/opaque/mismatched acknowledgements retain identical retry payload and never confirm success',async()=>{for(const response of [{ok:true,type:'opaque',json:async()=>({ok:true,submissionId:'fictional-test-0001'})},{ok:true,json:async()=>({ok:true,submissionId:'wrong-id'})},{ok:true,json:async()=>{throw Error('HTML redirect/login')} }]){const requests=[];const f=frontend(async(url,opts)=>{requests.push(opts);return response});await f.ctx.submit();assert.ok(!f.state.submitted);assert.ok(f.saved().includes('=fictional()'));await f.ctx.submit();assert.equal(requests[0].body,requests[1].body);assert.equal(JSON.parse(requests[0].body).groupNumber,123);assert.equal(requests[0].mode,'cors');assert.equal(requests[0].redirect,'follow');assert.equal(f.elements.sendResults.disabled,false);}});
-test('matching acknowledgement confirms; concurrent clicks send once',async()=>{let resolve,calls=0;const f=frontend(()=>{calls++;return new Promise(r=>resolve=r)});const first=f.ctx.submit();await f.ctx.submit();assert.equal(calls,1);resolve({ok:true,json:async()=>({ok:true,submissionId:'fictional-test-0001'})});await first;assert.equal(f.state.submitted,true);});
-test('completion sends automatically only after every activity, including after reload',()=>{
- const elements={};let sends=0,renders=0;
- const questions=Array.from({length:7},(_,i)=>({id:`q${i}`}));
- const state={answers:Object.fromEntries(questions.slice(0,6).map(q=>[q.id,{score:1,correct:true,topic:'fictional'}]))};
- const ctx=vm.createContext({state,questions,$:id=>elements[id]??=( {} ),save(){},render(){renders++},submit(){sends++},esc:s=>s});
- vm.runInContext(source.slice(source.indexOf('  function allAnswered()'),source.indexOf('  let sending = false;')),ctx);
- ctx.complete();assert.equal(sends,0);assert.equal(state.completed,false);assert.equal(state.index,6);
- state.answers.q6={score:1,correct:true,topic:'fictional'};ctx.complete();assert.equal(sends,1);assert.equal(state.completed,true);
- ctx.complete();assert.equal(sends,2);assert.equal(renders,1);
+const form='https://docs.google.com/forms/d/e/1FAIpQLScKmgVwoDWkDnnl22cZOdMjt2wWyKbkJV41K1By4g4HMWF5Cw/viewform';
+const ids=['arch_frontend','html_name','post_order','request_key','json_key','and_operator','response_debug'];
+const status="הטופס נפתח עם התוצאות שלך. יש ללחוץ על 'שליחה' בטופס Google כדי להשלים את ההגשה.";
+function fixture(options={}){
+ const state={studentId:'נועה',studentClass:'3',index:0,answers:{},submissionId:'fictional-test-0001',firstNameOnly:true,...options.state};
+ if(options.finished!==false)state.answers=Object.fromEntries(ids.map(id=>[id,{correct:true,score:1,attempts:1,topic:'legacy topic',answer:'תשובה דמיונית',expected:'תשובה צפויה'}]));
+ const elements=new Proxy({}, {get:(target,key)=>target[key]??=({value:'',hidden:false,style:{},dataset:{},parentElement:{setAttribute(){}},querySelectorAll:()=>[],querySelector:()=>null,setAttribute(){},focus(){}})});
+ const storage=new Map([['mindplay.movieArchitectureLab.v2.seven',JSON.stringify(state)]]),opened=[];
+ const window={open:(url,target)=>{const tab={opener:{},location:{href:url}};opened.push({url,target,tab});return options.blocked?null:tab}};
+ const ctx=vm.createContext({window,document:{getElementById:id=>elements[id],body:{classList:{add(){}}}},localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},crypto:{randomUUID:()=> 'fictional-test-0001'},URL,URLSearchParams,console,confirm:()=>false,location:{reload(){}},fetch:()=>{throw Error('Background requests forbidden')}});
+ const start=source.lastIndexOf("  $('startLab').onclick");
+ vm.runInContext(source.slice(0,start)+"window.lab={state,questions,allAnswered,resultSummary,complete,detailedResults,buildPrefilledFormUrl,openResultsForm,begin,check,next};})();",ctx);
+ return {lab:window.lab,elements,storage,opened};
+}
+test('exactly seven unique questions, one per topic, each with code; obsolete background integrations absent',()=>{
+ const {lab}=fixture();assert.equal(lab.questions.length,7);assert.equal(new Set(lab.questions.map(q=>q.module)).size,7);
+ for(const id of ids)assert.match(source,new RegExp(id+':\\['));
+ assert.doesNotMatch(source,/script\.google|APPS_SCRIPT_URL|fetch\(|formResponse|Formspree|formEndpoint|התוצאות נשלחו|נשלחו בהצלחה/);
 });
-test('last checked activity triggers completion automatically',()=>{
- let completed=0;const elements={feedback:{},nextQuestion:{},checkAnswer:{}};
- const state={answers:{}};const ctx=vm.createContext({state,current:()=>({id:'q1',topic:'fictional'}),validate:()=>true,responseFor:()=> 'fictional answer',expectedFor:()=> 'fictional answer',save(){},$:id=>elements[id],renderProgressOnly(){},allAnswered:()=>true,complete(){completed++}});
- vm.runInContext(source.slice(source.indexOf('  function check()'),source.indexOf('  function renderProgressOnly()')),ctx);ctx.check();assert.equal(completed,1);
+test('Hebrew and English first names accepted; blank/numeric names and nonnumeric groups rejected',()=>{
+ for(const name of ['נועה','Alex']){const f=fixture({finished:false});f.elements.studentId.value=name;f.elements.studentClass.value='3';f.lab.begin();assert.equal(f.elements.intro.hidden,true);assert.equal(f.lab.state.studentId,name)}
+ for(const [name,group] of [['','3'],['123','3'],['Alex',''],['Alex','3x'],['Alex','-2']]){const f=fixture({finished:false});f.elements.studentId.value=name;f.elements.studentClass.value=group;f.lab.begin();assert.notEqual(f.elements.intro.hidden,true)}
 });
-test('seven corrected answers with zero first-attempt points are valid; incomplete/foreign/duplicate IDs rejected',()=>{
- const b=backend(),d=payload();d.results.forEach(r=>{r.attempts=2;r.score=0});Object.assign(d,{score:0,percentage:0,correctAnswers:0,incorrectAnswers:7,totalAttempts:14});
- assert.equal(b.post(d).ok,true);assert.equal(b.post(d).duplicate,true);assert.equal(b.mails(),1);
- for(const change of [x=>x.results.pop(),x=>x.results[0].correct=false,x=>x.results[0].id='foreign',x=>x.results[0].id=x.results[1].id]){const x=payload();change(x);assert.equal(backend().post(x).ok,false)}
+test('incorrect answers block progression; every answer is retained and corrections keep zero first-attempt points',()=>{
+ const f=fixture({finished:false});let selected=1,text='wrong one';
+ f.elements.activity.querySelector=()=>({dataset:{v:selected},querySelector:()=>({textContent:text})});
+ f.lab.check();f.lab.next();assert.equal(f.lab.state.index,0);assert.equal(f.elements.nextQuestion.hidden,true);assert.equal(f.elements.checkAnswer.hidden,false);
+ text='wrong two';f.lab.check();selected=0;text='index.html בדפדפן';f.lab.check();
+ const r=f.lab.state.answers[ids[0]];assert.equal(r.attempts,3);assert.equal(r.score,0);assert.equal(r.correct,true);assert.equal(r.history.length,3);assert.equal(r.history[0].answer,'wrong one');assert.equal(r.history[1].answer,'wrong two');assert.equal(r.history[2].answer,text);
+ f.lab.next();assert.equal(f.lab.state.index,1);assert.ok([...f.storage.values()][0].includes('wrong two'));
 });
-test('mail and notification-log failures do not invalidate the saved submission or trigger duplicate mail',()=>{
- for(const failedMail of [false,true]){const b=backend();b.failMail(failedMail);b.failLog(true);const reply=b.post(payload());assert.equal(reply.ok,true);assert.equal(reply.submissionId,payload().submissionId);assert.equal(b.post(payload()).duplicate,true);assert.equal(b.mails(),failedMail?0:1);}
+test('first correct attempt earns one point; solved question cannot change score/history',()=>{
+ const f=fixture({finished:false});f.elements.activity.querySelector=()=>({dataset:{v:0},querySelector:()=>({textContent:'index.html בדפדפן'})});f.lab.check();f.lab.check();const r=f.lab.state.answers[ids[0]];assert.equal(r.score,1);assert.equal(r.attempts,1);assert.equal(r.history.length,1);
 });
-test('incorrect retries block advancement and preserve zero score until corrected',()=>{
- let ok=false,index=0,completed=0;const elements={feedback:{},nextQuestion:{},checkAnswer:{}};const state={answers:{},index:0};
- const ctx=vm.createContext({state,questions:[{id:'q1'},{id:'q2'}],current:()=>({id:'q1',topic:'fictional'}),validate:()=>ok,responseFor:()=>ok?'correct':'wrong',expectedFor:()=> 'correct',save(){},$:id=>elements[id],renderProgressOnly(){},allAnswered:()=>false,complete(){completed++},render(){index++}});
- vm.runInContext(source.slice(source.indexOf('  function check()'),source.indexOf('  function renderProgressOnly()')),ctx);
- vm.runInContext(source.slice(source.indexOf('  function next()'),source.indexOf('  function clean(')),ctx);
- ctx.check();ctx.next();assert.equal(state.index,0);assert.equal(elements.nextQuestion.hidden,true);assert.equal(elements.checkAnswer.hidden,false);
- ctx.check();ok=true;ctx.check();assert.equal(state.answers.q1.score,0);assert.equal(state.answers.q1.attempts,3);assert.equal(state.answers.q1.correct,true);ctx.next();assert.equal(state.index,1);assert.equal(completed,0);
+test('completion/reload renders seven results with real questions and never opens a tab',()=>{
+ const f=fixture();f.lab.complete();f.lab.complete();assert.equal(f.opened.length,0);assert.equal(f.lab.state.completed,true);assert.match(f.elements.completion.innerHTML,/נועה/);assert.match(f.elements.completion.innerHTML,/7\/7/);assert.equal((f.elements.completion.innerHTML.match(/class="resultQuestion"/g)||[]).length,7);assert.match(f.elements.completion.innerHTML,/כל הניסיונות/);
 });
-
-test('actual frontend seven-question payload is accepted by the backend including retry scores',async()=>{for(const retry of [false,true]){const b=backend();const f=frontend(async(url,opts)=>({ok:true,json:async()=>b.post(JSON.parse(opts.body))}));if(retry)Object.values(f.state.answers).forEach(r=>{r.attempts=2;r.score=0});await f.ctx.submit();assert.equal(f.state.submitted,true);await f.ctx.submit();assert.equal(b.sheets.get('Student Submissions').rows.length,2);assert.equal(b.sheets.get('Detailed Answers').rows.length,8);assert.equal(b.mails(),1);}});
+test('incomplete or incorrect questions cannot generate a prefill or open a tab',()=>{
+ const f=fixture();f.lab.state.answers[ids[6]].correct=false;assert.equal(f.lab.buildPrefilledFormUrl(),null);f.lab.openResultsForm();assert.equal(f.opened.length,0);
+});
+test('all four exact Google field IDs map to actual data with Hebrew/multiline/special-character round trip',()=>{
+ const f=fixture({state:{studentId:'נועה & Alex + אב',studentClass:'0042'}});
+ const answer='שורה א\nשורה ב & = ? + # % " <tag>';
+ f.lab.state.answers[ids[2]].answer=answer;f.lab.state.answers[ids[2]].history=[{number:1,answer,correct:true}];
+ const url=f.lab.buildPrefilledFormUrl(),params=url.searchParams;
+ assert.equal(url.origin+url.pathname,form);assert.equal(params.get('usp'),'pp_url');assert.equal(params.get('entry.455032283'),'נועה & Alex + אב');assert.equal(params.get('entry.1497177381'),'0042');assert.equal(params.get('entry.980947848'),'7/7');assert.match(params.get('entry.1484528458'),/ציון: 7\/7/);assert.ok(params.get('entry.1484528458').includes(answer));assert.equal(params.size,5);
+ const decoded=new URL(url.toString()).searchParams;assert.equal(decoded.get('entry.1484528458'),f.lab.detailedResults());
+});
+test('seven original topics/questions, actual answers, incorrect attempts and expected answers appear in details and summary',()=>{
+ const f=fixture();const r=f.lab.state.answers[ids[2]];Object.assign(r,{attempts:2,score:0,history:[{number:1,answer:'טעות דמיונית',correct:false},{number:2,answer:r.answer,correct:true}]});
+ const text=f.lab.detailedResults();assert.match(text,/ציון: 6\/7/);assert.match(text,/כולל: 8/);assert.match(text,/ניסיון 1 — לא נכון: טעות דמיונית/);assert.equal((text.match(/התשובה הנכונה:/g)||[]).length,7);
+ for(const q of f.lab.questions){assert.ok(text.includes(q.topic));assert.ok(text.includes(q.title));assert.ok(text.includes(f.lab.state.answers[q.id].expected))}
+ f.lab.complete();assert.match(f.elements.completion.innerHTML,/טעות דמיונית/);assert.match(f.elements.completion.innerHTML,/לא נכון/);
+});
+test('prefill values change with the student and score; no example identification is hardcoded',()=>{
+ const a=fixture(),b=fixture({state:{studentId:'Fictional',studentClass:'999'}});Object.values(b.lab.state.answers).forEach(r=>{r.score=0;r.attempts=2});
+ const pa=a.lab.buildPrefilledFormUrl().searchParams,pb=b.lab.buildPrefilledFormUrl().searchParams;assert.notEqual(pa.get('entry.455032283'),pb.get('entry.455032283'));assert.equal(pb.get('entry.1497177381'),'999');assert.equal(pb.get('entry.980947848'),'0/7');
+});
+test('opening form removes opener, shows required non-confirmation text, preserves results and permits reopening',()=>{
+ const f=fixture();f.lab.complete();const before=JSON.stringify(f.lab.state.answers);f.lab.openResultsForm();assert.equal(f.opened.length,1);assert.equal(f.opened[0].target,'_blank');assert.equal(f.opened[0].tab.opener,null);assert.equal(new URL(f.opened[0].tab.location.href).searchParams.get('entry.980947848'),'7/7');assert.equal(f.elements.sendState.textContent,status);assert.equal(JSON.stringify(f.lab.state.answers),before);assert.equal(f.lab.state.submitted,undefined);f.lab.openResultsForm();assert.equal(f.opened.length,2);
+});
+test('blocked popup offers an encoded safe link without claiming opened/submitted',()=>{
+ const f=fixture({blocked:true});f.lab.openResultsForm();assert.equal(f.elements.formFallback.hidden,false);assert.equal(new URL(f.elements.formFallback.href).searchParams.get('entry.455032283'),'נועה');assert.match(f.elements.sendState.textContent,/חסם/);assert.doesNotMatch(f.elements.sendState.textContent,/הטופס נפתח|בהצלחה/);
+});
+test('legacy progress preserves latest answer/count/score but marks unrecoverable history honestly',()=>{
+ const f=fixture({state:{firstNameOnly:undefined,studentId:'Alex Example',submitted:true,pendingSubmission:{studentName:'Alex Example'},pendingEmail:{},emailSent:true}});const r=f.lab.state.answers[ids[0]];assert.equal(f.lab.state.studentId,'Alex');assert.equal(f.lab.state.pendingSubmission,undefined);assert.equal(f.lab.state.emailSent,undefined);assert.equal(f.lab.state.pendingEmail,undefined);assert.equal(r.history.length,1);
+ const state={...f.lab.state,answers:{[ids[0]]:{correct:false,score:0,attempts:3,answer:'known last',expected:'expected'}}};const old=fixture({state,finished:false});assert.equal(old.lab.state.answers[ids[0]].historyMissing,2);assert.equal(old.lab.state.answers[ids[0]].history.length,1);assert.equal(old.lab.state.answers[ids[0]].history[0].number,3);
+});

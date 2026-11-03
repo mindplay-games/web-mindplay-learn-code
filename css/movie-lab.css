@@ -1010,3 +1010,21 @@ html[data-theme] .movieLabPage .moveButtons button {
     font-size:20px;
   }
 }
+/* Seven-question review: readable answers and code at every screen size. */
+.projectExample h3 {font-size:1rem; margin-block:18px 8px;}
+.projectExample .codeBox {white-space:pre-wrap; overflow-wrap:anywhere; text-align:left; direction:ltr;}
+.resultQuestions {padding-inline-start:1.6rem;}
+.resultQuestion {margin-block:16px; padding:16px; border:1px solid var(--labLine, #cbd5e1); border-radius:16px; background:var(--labPaper, #fff);}
+.resultQuestion h4 {margin-block:0 12px; font-size:1.1rem;}
+.resultQuestion dl {margin:0; display:grid; grid-template-columns:minmax(100px, 140px) minmax(0, 1fr); gap:10px 16px;}
+.resultQuestion dt {font-weight:700;}
+.resultQuestion dd {margin:0; white-space:pre-wrap; overflow-wrap:anywhere; min-width:0;}
+.resultsIdentity {font-size:1.2rem; overflow-wrap:anywhere;}
+.resultsActions {margin-block:18px;}
+.resultsActions button {white-space:normal;}
+@media(max-width:540px) {.resultQuestion dl {grid-template-columns:minmax(0,1fr); gap:6px;} .resultQuestion dd {margin-block-end:8px;} .resultQuestion {padding:12px;}}
+
+.attemptHistory {padding-inline-start:1.4rem;}
+.attemptHistory li {margin-block:10px; overflow-wrap:anywhere;}
+.attemptHistory p {margin-block:4px; white-space:pre-wrap;}
+.resultQuestion h5 {font-size:1rem; margin-block:16px 8px;}
