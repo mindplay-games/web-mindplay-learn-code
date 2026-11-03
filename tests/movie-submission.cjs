@@ -54,7 +54,7 @@ test('all four exact Google field IDs map to actual data with Hebrew/multiline/s
 });
 test('seven original topics/questions, actual answers, incorrect attempts and expected answers appear in details and summary',()=>{
  const f=fixture();const r=f.lab.state.answers[ids[2]];Object.assign(r,{attempts:2,score:0,history:[{number:1,answer:'טעות דמיונית',correct:false},{number:2,answer:r.answer,correct:true}]});
- const text=f.lab.detailedResults();assert.match(text,/ציון: 6\/7/);assert.match(text,/כולל: 8/);assert.match(text,/ניסיון 1 — לא נכון: טעות דמיונית/);assert.equal((text.match(/התשובה הנכונה:/g)||[]).length,7);
+ const text=f.lab.detailedResults();assert.match(text,/ציון: 6\/7/);assert.match(text,/סך ניסיונות: 8/);assert.match(text,/ניסיון 1 — לא נכון: טעות דמיונית/);assert.equal((text.match(/התשובה הנכונה:/g)||[]).length,7);
  for(const q of f.lab.questions){assert.ok(text.includes(q.topic));assert.ok(text.includes(q.title));assert.ok(text.includes(f.lab.state.answers[q.id].expected))}
  f.lab.complete();assert.match(f.elements.completion.innerHTML,/טעות דמיונית/);assert.match(f.elements.completion.innerHTML,/לא נכון/);
 });
@@ -71,4 +71,17 @@ test('blocked popup offers an encoded safe link without claiming opened/submitte
 test('legacy progress preserves latest answer/count/score but marks unrecoverable history honestly',()=>{
  const f=fixture({state:{firstNameOnly:undefined,studentId:'Alex Example',submitted:true,pendingSubmission:{studentName:'Alex Example'},pendingEmail:{},emailSent:true}});const r=f.lab.state.answers[ids[0]];assert.equal(f.lab.state.studentId,'Alex');assert.equal(f.lab.state.pendingSubmission,undefined);assert.equal(f.lab.state.emailSent,undefined);assert.equal(f.lab.state.pendingEmail,undefined);assert.equal(r.history.length,1);
  const state={...f.lab.state,answers:{[ids[0]]:{correct:false,score:0,attempts:3,answer:'known last',expected:'expected'}}};const old=fixture({state,finished:false});assert.equal(old.lab.state.answers[ids[0]].historyMissing,2);assert.equal(old.lab.state.answers[ids[0]].history.length,1);assert.equal(old.lab.state.answers[ids[0]].history[0].number,3);
+});
+
+test('oversized prefill never navigates a too-long URL or truncates an answer; offers explicit manual details fallback',()=>{
+ const f=fixture();const r=f.lab.state.answers[ids[0]],long='תשובה ארוכה & +\n'.repeat(2000);r.answer=long;r.history=[{number:1,answer:long,correct:true}];
+ const full=f.lab.buildPrefilledFormUrl();assert.ok((full.pathname+full.search).length>6000);assert.ok(full.searchParams.get('entry.1484528458').includes(long));
+ f.lab.openResultsForm();assert.equal(f.opened.length,0);assert.equal(f.elements.formFallback.hidden,false);assert.match(f.elements.sendState.textContent,/שום תשובה לא קוצרה/);assert.match(f.elements.sendState.textContent,/בלבד/);
+ const manual=new URL(f.elements.formFallback.href);assert.equal(manual.searchParams.get('entry.455032283'),'נועה');assert.equal(manual.searchParams.get('entry.980947848'),'7/7');assert.equal(manual.searchParams.has('entry.1484528458'),false);assert.equal(r.answer,long);assert.equal(r.history[0].answer,long);
+});
+test('compact details remove duplicated prompts and latest answers, keeping every attempt and expected answer exactly',()=>{
+ const f=fixture();for(const q of f.lab.questions){const answer=q.type==='choice'?q.options[q.answer]:q.answer.join(' → ');f.lab.state.answers[q.id]={answer,expected:answer,correct:true,score:1,attempts:1,history:[{number:1,answer,correct:true}]}}
+ const full=f.lab.buildPrefilledFormUrl(),details=full.searchParams.get('entry.1484528458');assert.ok((full.pathname+full.search).length<6000);assert.equal((details.match(/ניסיון 1 — נכון:/g)||[]).length,7);assert.equal((details.match(/התשובה הנכונה:/g)||[]).length,7);
+ for(const q of f.lab.questions)assert.ok(details.includes(f.lab.state.answers[q.id].answer));
+ f.lab.openResultsForm();assert.equal(f.opened.length,1);
 });

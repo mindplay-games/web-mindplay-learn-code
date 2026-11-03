@@ -77,7 +77,7 @@ with sync_playwright() as p:
         assert form.locator('[name="entry.1497177381"]').input_value()=='3'
         assert form.locator('[name="entry.980947848"]').input_value()==('0/7' if retry else '7/7')
         details=form.locator('[name="entry.1484528458"]').input_value()
-        assert details.count('התשובה הנכונה:')==7 and details.count('שאלה:')==7
+        assert details.count('התשובה הנכונה:')==7
         assert details.count('ניסיון ')==(14 if retry else 7)
         if retry:assert 'טעות & + ?' in details and 'ניסיון 1 — לא נכון' in details
         assert page.locator('#sendState').inner_text()==STATUS
@@ -101,6 +101,19 @@ with sync_playwright() as p:
     assert page.locator('#formFallback').is_visible()
     assert page.locator('#formFallback').get_attribute('rel')=='noopener noreferrer'
     assert parse_qs(urlparse(page.locator('#formFallback').get_attribute('href')).query)['entry.980947848']==['0/7']
+    # Long answers are kept in full; no oversized navigation or silent omission.
+    long_answer='תשובה ארוכה & +\n'*2000
+    state['answers']['arch_frontend'].update(answer=long_answer,history=[{'number':2,'answer':long_answer,'correct':True}])
+    page.evaluate('([key,state])=>localStorage.setItem(key,JSON.stringify(state))',[STORE,state]);page.reload()
+    page.evaluate('() => {window.popupCalls=0;window.open=()=>{window.popupCalls++;return null}}')
+    page.locator('#sendResults').click()
+    assert page.evaluate('window.popupCalls')==0
+    assert 'שום תשובה לא קוצרה' in page.locator('#sendState').inner_text()
+    manual=parse_qs(urlparse(page.locator('#formFallback').get_attribute('href')).query)
+    assert manual['entry.455032283']==['Alex'] and manual['entry.980947848']==['0/7']
+    assert 'entry.1484528458' not in manual
+    saved=page.evaluate('(key)=>JSON.parse(localStorage.getItem(key))',STORE)
+    assert saved['answers']['arch_frontend']['answer']==long_answer
     context.close()
     # Unrelated pages remain unchanged; basic local regression smoke tests.
     context=browser.new_context();context.route('**/*',lambda r:r.continue_() if r.request.url.startswith(base) else r.abort())
@@ -110,4 +123,4 @@ with sync_playwright() as p:
     context.close();browser.close()
 server.shutdown()
 assert errors==[],errors
-print('PASS: 8 seven-question flows at 1280/768/390/320px; first names/groups; 0/7 and 7/7 scoring; incorrect attempt histories; four prefilled fields; Hebrew/multiline encoding; explicit new tabs; no false confirmation; preserved reloads; popup blocker; legacy migration; unrelated-page smoke tests. Google page mocked; no real submission.')
+print('PASS: 8 seven-question flows at 1280/768/390/320px; first names/groups; 0/7 and 7/7 scoring; incorrect attempt histories; four prefilled fields; Hebrew/multiline encoding; explicit new tabs; no false confirmation; preserved reloads; popup blocker; oversized-link/manual-paste fallback without truncation; legacy migration; unrelated-page smoke tests. Google page mocked; no real submission.')

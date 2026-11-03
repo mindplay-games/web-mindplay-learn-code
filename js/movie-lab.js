@@ -1,7 +1,10 @@
 /* Interactive browser simulation of the Year C Flask movie project. No Python runs on GitHub Pages. */
 (() => {
   const STORE = 'mindplay.movieArchitectureLab.v2.seven';
+  // Published forms.gle/sFiY816tFREn5yKh8 resolves here (owner confirmed).
   const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScKmgVwoDWkDnnl22cZOdMjt2wWyKbkJV41K1By4g4HMWF5Cw/viewform';
+  // Conservative application budget, not a published Google Forms guarantee.
+  const MAX_PREFILL_REQUEST_BYTES = 6000;
   const movies = [
     {name:'Shrek',type:'movie',genre:'comedy',length:90,emoji:'🧅'}, {name:'Toy Story',type:'movie',genre:'animation',length:81,emoji:'🧸'},
     {name:'The Incredibles',type:'movie',genre:'action',length:115,emoji:'🦸'}, {name:'Spirited Away',type:'movie',genre:'fantasy',length:125,emoji:'🐉'},
@@ -139,10 +142,14 @@
   }
   function detailedResults(){
     const s=resultSummary();
-    const lines=[`שם פרטי: ${state.studentId}`,`קבוצה: ${state.studentClass}`,`ציון: ${s.score}/7`,`אחוז הצלחה: ${s.percentage}%`,`מספר ניסיונות כולל: ${s.attempts}`];
+    // Transport only: omit repeated identity/full prompts/final answers already
+    // present in the four fields or history. Never shorten an answer or attempt.
+    const lines=[`ציון: ${s.score}/7 | ${s.percentage}% | סך ניסיונות: ${s.attempts}`];
     s.results.forEach((r,i)=>{
-      lines.push('','--------------------',`${i+1}. ${r.topic} — ${r.title}`,`שאלה: ${r.question}`,`התשובה האחרונה: ${r.answer}`,`התשובה הנכונה: ${r.expected}`,`מספר ניסיונות: ${r.attempts}`,`נקודות: ${r.score}/1`,'כל הניסיונות:');
+      lines.push('',`${i+1}. ${r.topic} — ${r.title}`,`ניסיונות: ${r.attempts} | נקודות: ${r.score}/1`,`התשובה הנכונה: ${r.expected}`);
       (r.history||[]).forEach(a=>lines.push(`ניסיון ${a.number} — ${a.correct?'נכון':'לא נכון'}: ${a.answer||'לא נבחרה תשובה'}`));
+      // Preserve old saved records whose latest answer is not in their history.
+      if(!(r.history||[]).some(a=>a.number===r.attempts&&a.answer===r.answer))lines.push(`התשובה האחרונה: ${r.answer}`);
       if(r.historyMissing)lines.push(historyNote(r));
     });
     lines.push('',`נושאים לתרגול: ${s.weak.join(', ')||'אין'}`);
@@ -163,7 +170,18 @@
   }
   function openResultsForm(){
     if(!allAnswered())return;
-    const url=buildPrefilledFormUrl().toString(),out=$('sendState');
+    const fullUrl=buildPrefilledFormUrl(),out=$('sendState');
+    // URL serializes non-ASCII characters as percent-encoded ASCII, so this
+    // counts request-target bytes rather than decoded Hebrew characters.
+    if((fullUrl.pathname+fullUrl.search).length>MAX_PREFILL_REQUEST_BYTES){
+      const manualUrl=new URL(fullUrl);
+      manualUrl.searchParams.delete('entry.1484528458');
+      $('formFallback').href=manualUrl.toString();$('formFallback').hidden=false;
+      $('formFallback').textContent='פתיחת הטופס והדבקת הפירוט המלא ידנית';
+      out.textContent='הפירוט המלא יוצר קישור ארוך מדי למילוי אמין. שום תשובה לא קוצרה או נשלחה. בקישור שלמטה ימולאו השם, הקבוצה והציון בלבד; יש להעתיק את הסיכום המלא מהעמוד לשדה הפירוט בטופס Google, לבדוק וללחוץ על ״שליחה״.';
+      return;
+    }
+    const url=fullUrl.toString();
     try{
       // Open synchronously during the click so the browser can allow a new tab.
       const tab=window.open('about:blank','_blank');
@@ -173,7 +191,7 @@
       $('formFallback').hidden=true;
       out.textContent="הטופס נפתח עם התוצאות שלך. יש ללחוץ על 'שליחה' בטופס Google כדי להשלים את ההגשה.";
     }catch(_){
-      $('formFallback').href=url;$('formFallback').hidden=false;
+      $('formFallback').href=url;$('formFallback').textContent='פתיחת הטופס בכרטיסייה חדשה';$('formFallback').hidden=false;
       out.textContent='הדפדפן חסם את פתיחת הטופס. אפשר להשתמש בקישור שמתחת להודעה. בטופס Google יש לבדוק את התוצאות וללחוץ על ״שליחה״.';
     }
     // No request to a submission endpoint and no submission-status flag.
