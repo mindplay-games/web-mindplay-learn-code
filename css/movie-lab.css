@@ -1028,3 +1028,22 @@ html[data-theme] .movieLabPage .moveButtons button {
 .attemptHistory li {margin-block:10px; overflow-wrap:anywhere;}
 .attemptHistory p {margin-block:4px; white-space:pre-wrap;}
 .resultQuestion h5 {font-size:1rem; margin-block:16px 8px;}
+/* Approved seven challenges reuse the lab's cards and colors. */
+.approvedCode {min-width:0; margin-block:18px;}
+.approvedCode h3 {font-size:1rem; margin-block-end:8px;}
+.approvedCode .codeBox {direction:ltr; text-align:left; white-space:pre-wrap; overflow-wrap:anywhere;}
+.outputComparison {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px;}
+.outputComparison .approvedCode {padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--soft);}
+.outputComparison h3 {font-size:1rem;}
+.solutionPanel {padding:14px; border:2px solid var(--success); border-radius:14px; margin-block:18px; background:#f0faf4;}
+.movieSelection {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px;}
+.moviePick {display:flex; gap:12px; align-items:flex-start; padding:18px; border:2px solid #7891a5; border-radius:16px; background:#fff; cursor:pointer; min-width:0;}
+.moviePick:has(input:checked) {background:#e5f5fc; border-color:#087a9e; box-shadow:inset 0 0 0 1px #087a9e;}
+.moviePick input {width:24px; height:24px; flex:none; accent-color:#087a9e; margin-block-start:5px;}
+.moviePick>span,.moviePick>span>span {display:block; min-width:0; overflow-wrap:anywhere;}
+.moviePick strong {display:block; font-size:1.1rem;}
+.moviePick small {display:block; color:var(--secondary);}
+.flowText p {font-size:1rem; margin-block:6px;}
+.flowText code {white-space:pre-wrap; max-width:100%;}
+.matchRow:disabled {opacity:1;}
+@media(max-width:640px) {.outputComparison,.movieSelection {grid-template-columns:minmax(0,1fr);} .moviePick {padding:14px;}}

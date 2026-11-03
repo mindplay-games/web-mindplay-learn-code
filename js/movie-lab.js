@@ -1,37 +1,142 @@
 /* Interactive browser simulation of the Year C Flask movie project. No Python runs on GitHub Pages. */
 (() => {
-  const STORE = 'mindplay.movieArchitectureLab.v2.seven';
+  const STORE = 'mindplay.movieArchitectureLab.v3.approved';
   // Published forms.gle/sFiY816tFREn5yKh8 resolves here (owner confirmed).
   const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScKmgVwoDWkDnnl22cZOdMjt2wWyKbkJV41K1By4g4HMWF5Cw/viewform';
   // Conservative application budget, not a published Google Forms guarantee.
   const MAX_PREFILL_REQUEST_BYTES = 6000;
-  const movies = [
-    {name:'Shrek',type:'movie',genre:'comedy',length:90,emoji:'🧅'}, {name:'Toy Story',type:'movie',genre:'animation',length:81,emoji:'🧸'},
-    {name:'The Incredibles',type:'movie',genre:'action',length:115,emoji:'🦸'}, {name:'Spirited Away',type:'movie',genre:'fantasy',length:125,emoji:'🐉'},
-    {name:'Brooklyn Nine-Nine',type:'series',genre:'comedy',length:25,emoji:'👮'}, {name:'Avatar: The Last Airbender',type:'series',genre:'animation',length:23,emoji:'🌊'},
-    {name:'The Mandalorian',type:'series',genre:'action',length:40,emoji:'🚀'}, {name:'Wednesday',type:'series',genre:'fantasy',length:45,emoji:'🕷️'},
-    {name:'Paddington',type:'movie',genre:'comedy',length:95,emoji:'🐻'}, {name:'Arcane',type:'series',genre:'animation',length:42,emoji:'✨'}
-  ];
-  const genreHe={comedy:'קומדיה',action:'אקשן',animation:'אנימציה',fantasy:'פנטזיה'};
-  const typeHe={movie:'סרט',series:'סדרה'};
+  const formCode = `<form action="/choice" method="POST">
+  <select name="genre">
+    <option value="comedy">קומדיה</option>
+  </select>
+  <button type="submit">חפש סרט</button>
+</form>`;
   const questions = [
-    {id:'arch_frontend',module:0,topic:'ארכיטקטורה',title:'מה נמצא בצד של המשתמש?',objective:'לזהות frontend.',type:'choice',prompt:'איזה חלק מציג את הטופס שהילד/ה רואה?',options:['index.html בדפדפן','movie_data.json','לולאת for ב-main.py','print(movie["name"])'],answer:0,explain:'נכון! index.html נשלח לדפדפן ומציג את הטופס.'},
-    {id:'html_name',module:1,topic:'טופס HTML',title:'מה נשלח?',objective:'להבדיל בין טקסט נראה לבין value.',type:'choice',prompt:'כאשר בוחרים באפשרות שמוצגת כ״קומדיה״ עם value="comedy", מה נשלח?',options:['genre → קומדיה','comedy → genre','genre → comedy','value → קומדיה'],answer:2,explain:'נכון: name="genre" הוא המפתח, ו-value="comedy" הוא הערך. הטקסט ״קומדיה״ רק מוצג.'},
-    {id:'post_order',module:2,topic:'בקשת POST',title:'סדרו את מסע ה־POST',objective:'לעקוב אחר הבקשה מהדפדפן לשרת.',type:'order',prompt:'סדרו את ארבעת השלבים הראשונים.',items:['Flask מוצא את /choice','נלחץ submit','הדפדפן שולח POST ל-/choice','ממלאים טופס'],answer:['ממלאים טופס','נלחץ submit','הדפדפן שולח POST ל-/choice','Flask מוצא את /choice'],explain:'זו בקשה: ממלאים, שולחים, Flask מקבל ומתאים נתיב.'},
-    {id:'request_key',module:3,topic:'request.form ומשתנים',title:'השלימו את המפתח',objective:'להשתמש במפתח HTML נכון.',type:'fill',promptParts:['data_genre = request.form["','"]'],answer:['genre'],bank:['genre','data_genre','comedy','movie'],explain:'נכון. המפתח genre חייב להתאים ל-name="genre" שב־HTML.'},
-    {id:'json_key',module:4,topic:'JSON ומילונים',title:'איזה מפתח נבחר?',objective:'לקרוא ערך ממילון סרט.',type:'choice',prompt:'כדי לקבל את משך הסרט מהדוגמה movie, מה נכתוב?',options:['movie["length"]','request.form["length"]','data_length["movie"]','movie.length'],answer:0,explain:'נכון. movie הוא מילון שנקרא מה־JSON, ולכן משתמשים movie["length"].'},
-    {id:'and_operator',module:5,topic:'סינון סרטים',title:'כל התנאים יחד',objective:'להבין and.',type:'choice',prompt:'סרט הוא comedy ו-movie, אבל אורכו 95 והבחירה היא 90. האם הוא מתקבל?',options:['כן, שני התנאים הראשונים נכונים','לא, כי 95 <= 90 הוא False ו-and דורש הכול True','כן, length הוא תמיד טקסט','לא, כי comedy שונה מ-comedy'],answer:1,explain:'נכון. and מחזיר True רק כאשר כל ההשוואות נכונות.'},
-    {id:'response_debug',module:6,topic:'תגובה ודיבוג',title:'לאן הולך print?',objective:'להבדיל בין פלט שרת לתגובה.',type:'choice',prompt:'בקוד המקורי print(movie["name"]) ואז return data_type. מה רואה הדפדפן?',options:['את כל שמות הסרטים','רק movie_data.json','את הערך data_type, למשל movie','שום דבר כי print עוצר את Flask'],answer:2,explain:'נכון. print מופיע במסוף השרת. התגובה לדפדפן היא data_type בלבד.'}
+    {
+      id:'arch_frontend',module:0,topic:'ארכיטקטורה',type:'choice',
+      title:'מי אחראי על מה בפרויקט?',
+      intro:'לפניכם שני קטעי קוד מתוך פרויקט ממליץ הסרטים. קראו אותם וגלו מה התפקיד של כל אחד מהם.',
+      code:[{file:'קטע א׳ — index.html',text:formCode},{file:'קטע ב׳ — main.py',text:`@app.route("/choice", methods=["POST"])
+
+def choice():
+    data_genre = request.form["genre"]`}],
+      prompt:'איזה משפט מתאר נכון את התפקיד של שני קטעי הקוד?',
+      options:['קטע א׳ יוצר את הטופס שהמשתמש רואה, וקטע ב׳ מקבל את הבחירה שנשלחה לשרת.','קטע א׳ מחפש סרטים בשרת, וקטע ב׳ מציג את הטופס בדפדפן.','שני קטעי הקוד אחראים רק על העיצוב של הטופס.'],answer:0,
+      explain:'נכון! HTML יוצר את הטופס שהמשתמש רואה בדפדפן (Frontend), ו־Flask ב־Python מקבל את המידע שנשלח לשרת (Backend).',
+      wrong:'חפשו את תגיות form ו־button בקוד HTML, ואת request.form בקוד Python. איזה קוד מציג את הטופס ואיזה קורא את הבחירה?'
+    },
+    {
+      id:'html_name',module:1,topic:'טופס HTML',type:'parts',
+      title:'מתקנים את טופס הסרטים',
+      intro:"כדי שהשרת ידע איזה ז'אנר המשתמש בחר, הטופס צריך לשלוח את שם השדה ואת הערך שלו.",
+      code:[{file:'index.html',text:`<form action="/choice" method="POST">
+  <select name="① ???">
+    <option value="② ???">קומדיה</option>
+  </select>
+</form>`}],
+      prompt:'השלימו את שני החלקים החסרים בקוד כך שכאשר המשתמש בוחר "קומדיה", השרת יקבל genre = comedy.',
+      parts:[{report:'name',label:'① — מה צריך להיות בתוך name?',options:['genre','comedy','movie'],answer:'genre'},{report:'value',label:'② — מה צריך להיות בתוך value?',options:['comedy','genre','קומדיה'],answer:'comedy'}],
+      explain:'מצוין! name="genre" מגדיר את שם השדה, ו־value="comedy" הוא הערך שנשלח לשרת. המילה "קומדיה" היא מה שהמשתמש רואה ברשימה.',
+      wrong:'name מתאר איזה מידע אנחנו שולחים, ו־value מתאר מה המשתמש בחר. שימו לב להבדל בין הטקסט שמוצג למשתמש לבין הערך שנשלח.'
+    },
+    {
+      id:'post_order',module:2,topic:'בקשת POST',type:'order',
+      title:'איך בקשת POST מגיעה לשרת?',
+      intro:'המשתמש בחר בז\'אנר "קומדיה" ולחץ על "חפש סרט". סדרו את הפעולות לפי הסדר שבו הן מתרחשות.',
+      code:[{file:'קטע א׳ — index.html',text:formCode},{file:'קטע ב׳ — main.py',text:`@app.route("/choice", methods=["POST"])
+
+def choice():
+    genre = request.form["genre"]`}],
+      prompt:'סדרו את הפעולות לפי הסדר שבו הן מתרחשות.',
+      cards:[
+        {id:'click',title:'לחיצה על הכפתור',description:'המשתמש לוחץ על "חפש סרט".',code:'<button type="submit">'},
+        {id:'post',title:'שליחת הבקשה',description:'הדפדפן שולח בקשת POST לשרת.',code:'action="/choice" method="POST"'},
+        {id:'route',title:'הפעלת הפונקציה בשרת',description:'Flask מזהה את הבקשה ומפעיל את choice().',code:'@app.route("/choice", methods=["POST"])'},
+        {id:'read',title:'קריאת הנתונים',description:'Flask קורא את הז\'אנר שנבחר בטופס.',code:'request.form["genre"]'}
+      ],answer:['click','post','route','read'],
+      explain:'נכון! המשתמש לוחץ על הכפתור, הדפדפן שולח POST לכתובת /choice, Flask מפעיל את הפונקציה המתאימה, ואז קורא את המידע מתוך request.form.',
+      wrong:'התחילו מהפעולה שהמשתמש מבצע בדפדפן. לאחר מכן בדקו לאן הטופס נשלח, איזו פונקציה מקבלת את הבקשה, ומתי קוראים את הנתונים.'
+    },
+    {
+      id:'request_key',module:3,topic:'request.form ומשתנים',type:'parts',
+      title:'איך Flask קורא את הבחירה מהטופס?',
+      intro:'בקשת POST הגיעה לשרת. עכשיו Flask צריך לגלות איזה ז\'אנר המשתמש בחר.',
+      code:[{file:'קטע א׳ — index.html',text:`<form action="/choice" method="POST">
+  <select name="genre">
+    <option value="comedy">קומדיה</option>
+    <option value="action">אקשן</option>
+  </select>
+  <button type="submit">חפש סרט</button>
+</form>`},{file:'קטע ב׳ — main.py',text:`@app.route("/choice", methods=["POST"])
+
+def choice():
+    data_genre = request.form["???"]
+    print(data_genre)`}],
+      prompt:'התאימו לכל מושג את הערך המתאים מתוך הקוד.',
+      parts:[
+        {report:'name',label:'שם השדה בטופס (name)',options:['genre','comedy','action','choice'],answer:'genre'},
+        {report:'value',label:'הערך שנשלח כשבוחרים קומדיה (value)',options:['genre','comedy','action','choice'],answer:'comedy'},
+        {report:'request.form key',label:'המפתח שצריך להופיע בתוך request.form["???"]',options:['genre','comedy','action','choice'],answer:'genre'}
+      ],
+      explain:'מצוין! name="genre" מגדיר את שם השדה. כשהמשתמש בוחר קומדיה, הערך שנשלח הוא comedy. לכן request.form["genre"] מחזיר comedy.',
+      wrong:'name הוא שם השדה, value הוא הערך שנבחר, ו־request.form משתמש בשם השדה כדי למצוא את הערך.',
+      output:'comedy'
+    },
+    {
+      id:'json_key',module:4,topic:'JSON ומילונים',type:'json',
+      title:'בלשי ה־JSON',
+      intro:'לפניכם מידע על הסרט Shrek מתוך קובץ movies.json.',
+      code:[{file:'movies.json',text:`{
+  "id": 1,
+  "name": "Shrek",
+  "genre": "comedy",
+  "length": 90,
+  "emoji": "🧌"
+}`}],
+      prompt:'התאימו בין המפתחות לערכים.',
+      parts:[
+        {report:'name',label:'מה הערך של המפתח name?',options:['Shrek','length','comedy','name','90'],answer:'Shrek'},
+        {report:'מפתח אורך',label:'איזה מפתח שומר את אורך הסרט?',options:['Shrek','length','comedy','name','90'],answer:'length'},
+        {report:'genre',label:'מה הערך של המפתח genre?',options:['Shrek','length','comedy','name','90'],answer:'comedy'},
+        {report:'movie key',label:'איזה מפתח צריך להכניס במקום סימני השאלה?',options:['name','length','genre','90'],answer:'length',quoted:true}
+      ],
+      secondIntro:'נניח שהמידע על הסרט שמור במשתנה movie. אנחנו רוצים שהקוד ידפיס את אורך הסרט: 90.',
+      explain:'מצוין! length הוא המפתח ו־90 הוא הערך שלו. כשכותבים movie["length"], Python שולף את הערך שנמצא תחת המפתח הזה.',
+      wrong:'ב־JSON המפתח מופיע לפני הנקודתיים והערך אחריהן. כדי לשלוף מידע ממילון ב־Python משתמשים בשם המפתח, לא בערך עצמו.',
+      output:'90'
+    },
+    {
+      id:'and_operator',module:5,topic:'סינון סרטים',type:'multi',
+      title:'מי נכנס לרשימת הסרטים?',
+      intro:'המשתמש ביקש למצוא סרטי קומדיה שאורכם עד 95 דקות.',
+      code:[{file:'main.py',text:`if movie["genre"] == "comedy" and movie["length"] <= 95:
+    print(movie["name"])`}],
+      prompt:'סמנו את כל הסרטים שהקוד ידפיס.',
+      movies:[{id:'shrek',name:'Shrek',genre:'comedy',length:90},{id:'kung-fu-panda',name:'Kung Fu Panda',genre:'animation',length:92},{id:'funny-movie',name:'Funny Movie',genre:'comedy',length:110,fictional:true},{id:'short-comedy',name:'Short Comedy',genre:'comedy',length:85,fictional:true}],
+      answer:['shrek','short-comedy'],
+      explain:'נכון! and אומר ששני התנאים חייבים להתקיים: גם genre == "comedy" וגם length <= 95. לכן Shrek ו־Short Comedy עוברים את הסינון.',
+      wrong:'בדקו כל סרט פעמיים: האם הוא קומדיה? והאם אורכו קטן או שווה ל־95 דקות? אם אחד התנאים לא מתקיים, הסרט לא יודפס.'
+    },
+    {
+      id:'response_debug',module:6,topic:'תגובה ודיבוג',type:'choice',
+      title:'בלשי הבאגים: לאן נעלמה התוצאה?',
+      intro:'המשתמש בחר ז\'אנר ולחץ על "חפש סרט". המתכנת רצה להציג באתר את שם הסרט שנמצא, אבל השם מופיע בטרמינל ולא בדף האינטרנט.',
+      code:[{file:'main.py',text:`@app.route("/choice", methods=["POST"])
+
+def choice():
+    movie_name = "Shrek"
+    print(movie_name)
+    return "החיפוש הסתיים"`}],
+      prompt:'המתכנת רוצה שהשם Shrek יופיע בדפדפן במקום "החיפוש הסתיים". איזו שורה צריך לשנות?',
+      options:['print("Shrek") — להדפיס את השם ישירות.','return movie_name — להחזיר את שם הסרט מהפונקציה.','movie_name = print("Shrek") — לשמור במשתנה את תוצאת ההדפסה.','return "החיפוש הסתיים" — להשאיר את הקוד כמו שהוא.'],answer:1,
+      explain:'מצוין! print() מציג מידע בטרמינל של השרת, ואילו return מחזיר את התגובה ש־Flask שולח לדפדפן.',
+      wrong:'print() מיועד להדפסה בטרמינל. חפשו את הפקודה שאחראית להחזיר תשובה מהשרת לדפדפן.',
+      correctedCode:`def choice():
+    movie_name = "Shrek"
+    print(movie_name)
+    return movie_name`
+    }
   ];
-  const projectCode={
-    arch_frontend:['index.html → Browser | main.py → Flask server', '<form action="/choice" method="POST">\n  <button type="submit">Find a movie</button>\n</form>'],
-    html_name:['index.html', '<select name="genre">\n  <option value="comedy">קומדיה</option>\n</select>'],
-    post_order:['index.html / main.py', '<form action="/choice" method="POST">…</form>\n\n@app.route("/choice", methods=["POST"])\ndef choice():\n    data_genre = request.form["genre"]'],
-    request_key:['main.py — Flask', 'data_genre = request.form["genre"]'],
-    json_key:['movie_data.json / main.py', '{"name": "Shrek", "genre": "comedy", "length": 90}\n\nmovie["length"]'],
-    and_operator:['main.py — Python', 'data_length = int(request.form["length"])\nif (movie["genre"] == data_genre\n    and movie["type"] == data_type\n    and movie["length"] <= data_length):\n    print(movie["name"])'],
-    response_debug:['main.py — Flask', 'print(movie["name"])  # server console\nreturn data_type      # browser response']
-  };
   const modules=['1. ארכיטקטורה','2. טופס HTML','3. מסע POST','4. request.form','5. JSON ומילונים','6. סינון','7. תגובה ודיבוג'];
   let state = load() || {studentId:'',studentClass:'',startedAt:null,index:0,answers:{},submissionId:''};
   state.answers ||= {}; state.submissionId ||= (crypto.randomUUID ? crypto.randomUUID() : `movie-${Date.now()}-${Math.random().toString(36).slice(2)}`);
@@ -49,7 +154,14 @@
     }
   }
   const $=id=>document.getElementById(id);
-  function load(){try{return JSON.parse(localStorage.getItem(STORE))}catch{return null}}
+  function load(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(STORE));if(saved)return saved;
+      const old=JSON.parse(localStorage.getItem('mindplay.movieArchitectureLab.v2.seven'));
+      // New questions need fresh attempts. Preserve the old results at their key.
+      return old?{studentId:old.firstNameOnly?old.studentId:String(old.studentId||'').trim().split(/\s+/)[0],studentClass:old.studentClass,firstNameOnly:true,index:0,answers:{}}:null;
+    }catch{return null}
+  }
   function save(){localStorage.setItem(STORE,JSON.stringify(state))}
   function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
   function current(){return questions[state.index]}
@@ -70,51 +182,117 @@
     for(const match of String(text).matchAll(tokens)){html+=esc(text.slice(end,match.index))+`<bdi dir="ltr">${esc(match[0])}</bdi>`;end=match.index+match[0].length}
     return html+esc(text.slice(end));
   }
-  function routeDiagram(){return '<div class="dataRoute" aria-label="מסלול המידע: HTML, POST, Flask, משתני Python, JSON"><code>HTML</code><b aria-hidden="true">→</b><code>POST</code><b aria-hidden="true">→</b><code>Flask</code><b aria-hidden="true">→</b><code>Python</code><b aria-hidden="true">→</b><code>JSON</code></div>'}
-  function render(){document.body.classList.add('labStarted');const q=current(), done=questions.filter(q=>state.answers[q.id]?.correct===true).length, score=Object.values(state.answers).reduce((n,x)=>n+(x.score||0),0), first=state.studentId.split(' ')[0];$('progressText').textContent=`הושלמו ${done} מתוך ${questions.length}`;$('scoreText').textContent=`${score} נקודות`;$('progressBar').style.width=`${done/questions.length*100}%`;$('progressBar').parentElement.setAttribute('aria-valuenow',done);$('topicBadge').innerHTML=rich(q.topic);$('questionCount').textContent=`שאלה ${state.index+1} מתוך ${questions.length} · ${first}`;$('questionTitle').textContent=q.title;$('objective').innerHTML=rich(`המטרה: ${q.objective}`);$('feedback').className='labFeedback';$('feedback').textContent='';$('nextQuestion').hidden=true;$('retryAnswer').hidden=true;$('checkAnswer').hidden=false;renderTabs();renderActivity(q);$('projectCodeLabel').textContent=projectCode[q.id][0];$('projectCode').textContent=projectCode[q.id][1]}
-  function renderActivity(q){const a=$('activity');a.innerHTML='';delete a.dataset.complete;if(q.type==='choice'){a.innerHTML=`<p>${rich(q.prompt)}</p><div class="choiceGrid">${q.options.map((x,i)=>`<button class="option" data-v="${i}" aria-pressed="false"><span class="optionMark" aria-hidden="true">${i+1}</span><span class="answerText">${rich(x)}</span></button>`).join('')}</div>`;a.querySelectorAll('.option').forEach(b=>b.onclick=()=>{a.querySelectorAll('.option').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true')})}
-    else if(q.type==='match'){
-      const rights=Object.values(q.pairs).sort(()=>Math.random()-.5);
-      a.innerHTML=`<p>מי עושה מה? לכל קובץ או רכיב בחרו את התפקיד המתאים.</p><div class="matchGrid">${Object.keys(q.pairs).map((k,i)=>`<fieldset class="matchRow" data-k="${esc(k)}"><legend><code class="pairLabel">${esc(k)}</code></legend><div class="matchChoices">${rights.map(v=>`<label class="answerChoice"><input type="radio" name="match-${i}" value="${esc(v)}"><span>${rich(v)}</span></label>`).join('')}</div></fieldset>`).join('')}</div>`;
-    }
-    else if(q.type==='fill'){
-      a.innerHTML=`<p>השלימו את הקוד. אפשר להקליד או לבחור מילה מהבנק.</p><pre class="codeBox" aria-label="דוגמת קוד עם מקומות להשלמה"><code>${q.promptParts.map((part,i)=>esc(part)+(i<q.answer.length?`<span class="codeSlot">[${i+1}]</span>`:'')).join('')}</code></pre><div class="fillFields">${q.answer.map((_,i)=>`<label for="fill-${i}">מה נכתוב במקום [${i+1}]?<input id="fill-${i}" class="fillInput" data-i="${i}" aria-label="השלמה ${i+1}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="הקלידו כאן את ההשלמה"></label>`).join('')}</div><div class="wordBank"><p>💡 בנק מילים · לחיצה תמלא את השדה הריק הבא</p><div class="choiceGrid">${q.bank.map(x=>`<button class="option" data-word="${esc(x)}"><bdi dir="auto">${esc(x)}</bdi></button>`).join('')}</div></div>`;
-      a.querySelectorAll('[data-word]').forEach(b=>b.onclick=()=>{const e=[...a.querySelectorAll('.fillInput')].find(x=>!x.value);if(e){e.value=b.dataset.word;e.focus()}});
-    }
-    else if(q.type==='order'){
-      const shuffled=[...q.items].sort(()=>Math.random()-.5);
-      a.innerHTML=`<p>${rich(q.prompt)}</p>${routeDiagram()}<div class="flow" role="group" aria-label="סידור התחנות">${shuffled.map(x=>`<div class="flowRow" draggable="true" data-v="${esc(x)}"><span class="flowText">${rich(x)}</span><div class="moveButtons"><button type="button" class="up" aria-label="הזיזו את ${esc(x)} למעלה">↑</button><button type="button" class="down" aria-label="הזיזו את ${esc(x)} למטה">↓</button></div></div>`).join('')}</div><p class="mini">סדרו מלמעלה למטה. אפשר לגרור או להשתמש בכפתורי ↑ ↓ עם העכבר, המקלדת או במסך המגע.</p><div id="orderStatus" class="srOnly" role="status"></div>`;
-      const announce=row=>$('orderStatus').textContent=`${row.dataset.v}: תחנה ${[...row.parentElement.children].indexOf(row)+1} מתוך ${q.items.length}`;
-      let dragged=null;
-      a.querySelectorAll('.flowRow').forEach(row=>{row.ondragstart=()=>dragged=row;row.ondragend=()=>dragged=null;row.ondragover=e=>e.preventDefault();row.ondrop=e=>{e.preventDefault();if(dragged&&dragged!==row){row.parentElement.insertBefore(dragged,row);announce(dragged)}}});
-      a.querySelectorAll('.up,.down').forEach(b=>b.onclick=()=>{const row=b.closest('.flowRow');if(b.classList.contains('up')){const prev=row.previousElementSibling;if(prev)row.parentElement.insertBefore(row,prev)}else{const next=row.nextElementSibling;if(next)row.parentElement.insertBefore(next,row)}b.focus();announce(row)});
-    }
-    else if(q.type==='form') renderForm(a,q); else if(q.type==='journey') renderJourney(a,q); else if(q.type==='filter') renderFilter(a,q);
+  function shuffledOrder(q){
+    const order=q.cards.map(c=>c.id);
+    for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}
+    if(order.every((id,i)=>id===q.answer[i]))order.push(order.shift());
+    return order;
   }
-  function renderForm(a,q){a.innerHTML=`<p>בחרו מה תרצו לראות, ואז גלו אילו נתונים הטופס שולח.</p><div class="filterControls"><label>מה תרצו?<select class="labSelect" id="fType"><option value="movie">סרט</option><option value="series">סדרה</option></select></label><label>איזה ז'אנר?<select class="labSelect" id="fGenre">${Object.entries(genreHe).map(([v,h])=>`<option value="${v}">${h}</option>`).join('')}</select></label><label>כמה זמן?<select class="labSelect" id="fLength"><option value="45">עד 45</option><option value="90">עד שעה וחצי</option><option value="150">יש לי זמן</option></select></label></div><button class="btn" id="formSend">מצאו לי משהו לראות</button><div id="formResult" class="kv" role="status" aria-label="הנתונים שנשלחו" hidden></div>`;$('formSend').onclick=()=>{const vals=[['type',$('fType').value],['genre',$('fGenre').value],['length',$('fLength').value]];$('formResult').hidden=false;$('formResult').innerHTML=vals.map(x=>`<b>${x[0]}</b><span>→ ${x[1]}</span>`).join('');a.dataset.complete='true'};}
-  function renderJourney(a,q){
-    const steps=['הטופס מלא: genre = comedy','POST נשלח אל /choice','Flask קורא request.form["genre"]','data_genre שומר "comedy"','לולאת for בודקת סרטים ב־JSON','Flask מחזיר response'];let i=0;
-    a.innerHTML=`<p>לאן הבחירה שלנו עוברת? התקדמו תחנה אחת בכל לחיצה.</p>${routeDiagram()}<div class="journey" id="journey">${steps.map(s=>`<span>${rich(s)}</span>`).join('')}</div><div class="journeyNote" id="journeyCode" role="status"></div><button class="btn" id="journeyNext">לתחנה הבאה ←</button>`;
-    const update=()=>{const text=['הדפדפן מחזיק את בחירת המשתמש/ת.','הבקשה מכילה נתונים, לא תשובה.','request.form הוא מילון של שדות שנשלחו.','כעת משתנה Python מחזיק את הערך.','movie הוא מילון אחר: נתון מה־JSON.','response חוזרת לדפדפן. המסע הושלם — אפשר לבדוק!'][i];$('journeyCode').innerHTML=rich(text);[...$('journey').children].forEach((x,n)=>{x.classList.toggle('current',n===i);if(n===i)x.setAttribute('aria-current','step');else x.removeAttribute('aria-current')});if(i===steps.length-1){a.dataset.complete='true';$('journeyNext').disabled=true;$('journeyNext').textContent='כל התחנות הושלמו ✓'}};
-    update();$('journeyNext').onclick=()=>{if(i<steps.length-1)i++;update()};
+  function draftFor(q){
+    state.drafts ||= {};
+    if(!state.drafts[q.id])state.drafts[q.id]={choice:null,parts:q.parts?.map(()=>null)||[],order:q.type==='order'?shuffledOrder(q):[],movies:[]};
+    return state.drafts[q.id];
   }
-  function renderFilter(a,q){a.innerHTML=`<p>היו במאים לרגע! בחרו העדפות ובדקו אילו סרטים עומדים בכל שלושת התנאים.</p><details class="hint"><summary>💡 איך הסימולטור עובד?</summary><p>זהו מאגר תרגול קטן שנוצר למעבדה; מאגר 50 הסרטים המקורי אינו בפרויקט. החישוב זהה לקוד <bdi dir="ltr">Flask</bdi>: סוג, ז׳אנר ומשך צריכים להתאים יחד.</p></details><div class="filterControls"><label>סוג<select id="sType" class="labSelect"><option value="movie">סרט</option><option value="series">סדרה</option></select></label><label>ז׳אנר<select id="sGenre" class="labSelect">${Object.entries(genreHe).map(([v,h])=>`<option value="${v}">${h}</option>`).join('')}</select></label><label>מקסימום דקות<select id="sLength" class="labSelect"><option value="45">45</option><option value="90" selected>90</option><option value="150">150</option></select></label></div><button class="btn" id="runFilter">הריצו את הסינון</button><div class="movieGrid" id="movieResults" aria-live="polite"></div>`;const update=()=>{const type=$('sType').value,genre=$('sGenre').value,length=Number($('sLength').value);$('movieResults').innerHTML=movies.map(m=>{const checks=[m.genre===genre,m.type===type,m.length<=length],ok=checks.every(Boolean);return `<div class="movieCard ${ok?'good':'bad'}"><strong>${m.emoji} <bdi dir="ltr">${m.name}</bdi></strong><small>${genreHe[m.genre]} • ${typeHe[m.type]} • ${m.length} דק׳</small><div class="checks"><span>${m.genre} == ${genre} → ${checks[0]}</span><span>${m.type} == ${type} → ${checks[1]}</span><span>${m.length} <= ${length} → ${checks[2]}</span><b>${ok?'✓ מתקבל':'✕ לא מתקבל'}</b></div></div>`}).join('');a.dataset.complete='true'};$('runFilter').onclick=update}
-  function validate(q){const a=$('activity');if(q.type==='choice'){return +a.querySelector('.option[aria-pressed="true"]')?.dataset.v===q.answer}if(q.type==='match'){return Object.entries(q.pairs).every(([k,v])=>a.querySelector(`[data-k="${CSS.escape(k)}"] input:checked`)?.value===v)}if(q.type==='fill'){return q.answer.every((x,i)=>a.querySelector(`[data-i="${i}"]`).value.trim()===x)}if(q.type==='order'){return [...a.querySelectorAll('.flowRow')].map(x=>x.dataset.v).join('|')===q.answer.join('|')}return a.dataset.complete==='true'}
-  function responseFor(q){const a=$('activity');if(q.type==='choice')return a.querySelector('.option[aria-pressed="true"]')?.querySelector('.answerText').textContent.trim()||'';if(q.type==='match')return [...a.querySelectorAll('.matchRow')].map(x=>`${x.dataset.k}=${x.querySelector('input:checked')?.value||''}`).join('; ');if(q.type==='fill')return [...a.querySelectorAll('.fillInput')].map(x=>x.value.trim()).join(', ');if(q.type==='order')return [...a.querySelectorAll('.flowRow')].map(x=>x.dataset.v).join(' → ');return a.dataset.complete==='true'?'הסימולציה הופעלה':''}
-  function expectedFor(q){if(q.type==='choice')return q.options[q.answer];if(q.type==='match')return Object.entries(q.pairs).map(([k,v])=>`${k}=${v}`).join('; ');if(q.type==='fill')return q.answer.join(', ');if(q.type==='order')return q.answer.join(' → ');return 'הפעלת הסימולציה'}
+  function codeBlock(label,text){return `<section class="approvedCode"><h3>${rich(label)}</h3><pre class="codeBox" dir="ltr"><code>${esc(text)}</code></pre></section>`}
+  function renderCode(q){
+    const d=draftFor(q);
+    $('projectExamples').innerHTML=q.code.map(block=>{
+      let text=block.text;
+      if(q.id==='html_name')text=text.replace('① ???',d.parts[0]??'① ???').replace('② ???',d.parts[1]??'② ???');
+      if(q.id==='request_key'&&d.parts[2]!=null)text=text.replace('???',d.parts[2]);
+      return codeBlock(block.file,text);
+    }).join('');
+    if(q.type==='json')$('jsonPreview').textContent=`print(movie[${d.parts[3]==null?'"???"':JSON.stringify(d.parts[3])}])`;
+  }
+  function ready(q){
+    const d=draftFor(q);
+    if(q.type==='choice')return Number.isInteger(d.choice);
+    if(q.parts)return q.parts.every((part,i)=>part.options.includes(d.parts[i]));
+    if(q.type==='multi')return d.movies.length>0;
+    return d.order.length===4;
+  }
+  function updateAvailability(){const q=current();$('checkAnswer').disabled=!ready(q)||state.answers[q.id]?.correct===true}
+  function render(){
+    document.body.classList.add('labStarted');const q=current();
+    $('topicBadge').innerHTML=rich(q.topic);$('questionCount').textContent=`שאלה ${state.index+1} מתוך 7 · ${state.studentId}`;
+    $('questionTitle').textContent=q.title;$('objective').innerHTML=rich(q.intro);
+    $('feedback').className='labFeedback';$('feedback').textContent='';$('solution').hidden=true;$('solution').innerHTML='';
+    $('nextQuestion').hidden=state.answers[q.id]?.correct!==true;$('nextQuestion').textContent=state.index===6?'לסיכום התוצאות ←':'לשאלה הבאה ←';
+    $('retryAnswer').hidden=true;$('checkAnswer').hidden=state.answers[q.id]?.correct===true;
+    renderProgressOnly();renderTabs();renderActivity(q);renderCode(q);updateAvailability();save();
+    if(state.answers[q.id]?.correct===true)showFeedback(q,true);
+  }
+  function partChoices(q,part,i){
+    const d=draftFor(q),solved=state.answers[q.id]?.correct===true;
+    return `<fieldset class="matchRow" data-part="${i}" ${solved?'disabled':''}><legend>${rich(part.label)}</legend><div class="matchChoices">${part.options.map((value,n)=>`<label class="answerChoice"><input type="radio" name="part-${q.id}-${i}" value="${esc(value)}" ${d.parts[i]===value?'checked':''}><span><bdi dir="auto">${esc(part.quoted?JSON.stringify(value):value)}</bdi></span></label>`).join('')}</div></fieldset>`;
+  }
+  function renderActivity(q){
+    const a=$('activity'),d=draftFor(q),solved=state.answers[q.id]?.correct===true;
+    const prompt=`<p>${rich(q.prompt)}</p>`;
+    if(q.type==='choice'){
+      const comparison=q.id==='response_debug'?`<div class="outputComparison">${codeBlock('טרמינל — המצב הנוכחי','Shrek')}${codeBlock('דפדפן — המצב הנוכחי','החיפוש הסתיים')}</div>`:'';
+      a.innerHTML=comparison+prompt+`<div class="choiceGrid">${q.options.map((text,i)=>`<button type="button" class="option" data-v="${i}" aria-pressed="${d.choice===i}" ${solved?'disabled':''}><span class="optionMark" aria-hidden="true">${['א','ב','ג','ד'][i]}</span><span class="answerText">${rich(text)}</span></button>`).join('')}</div>`;
+      a.querySelectorAll('[data-v]').forEach(button=>button.onclick=()=>{d.choice=Number(button.dataset.v);a.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));save();updateAvailability()});
+    }else if(q.parts){
+      if(q.type==='json')a.innerHTML=`<h3>חלק א׳ — התאמת מפתחות וערכים</h3>${prompt}<div class="matchGrid">${q.parts.slice(0,3).map((p,i)=>partChoices(q,p,i)).join('')}</div><h3>חלק ב׳ — שליפת מידע עם Python</h3><p>${rich(q.secondIntro)}</p><pre class="codeBox" dir="ltr"><code id="jsonPreview"></code></pre>${partChoices(q,q.parts[3],3)}`;
+      else a.innerHTML=prompt+`<div class="matchGrid">${q.parts.map((p,i)=>partChoices(q,p,i)).join('')}</div>`;
+      a.querySelectorAll('input[type="radio"]').forEach(input=>input.onchange=()=>{const i=Number(input.closest('[data-part]').dataset.part);d.parts[i]=input.value;save();renderCode(q);updateAvailability()});
+    }else if(q.type==='order'){
+      a.innerHTML=prompt+`<div class="flow" role="group" aria-label="סידור פעולות בקשת POST">${d.order.map(id=>{const c=q.cards.find(c=>c.id===id);return `<div class="flowRow" data-v="${c.id}"><div class="flowText"><strong>${esc(c.title)}</strong><p>${rich(c.description)}</p><code dir="ltr">${esc(c.code)}</code></div><div class="moveButtons"><button type="button" class="up" aria-label="הזיזו את ${esc(c.title)} למעלה" ${solved?'disabled':''}>↑</button><button type="button" class="down" aria-label="הזיזו את ${esc(c.title)} למטה" ${solved?'disabled':''}>↓</button></div></div>`}).join('')}</div><p class="mini">סדרו מלמעלה למטה בעזרת הכפתורים ↑ ↓. אפשר להשתמש גם במקלדת.</p><div id="orderStatus" class="srOnly" role="status"></div>`;
+      a.querySelectorAll('.up,.down').forEach(button=>button.onclick=()=>{
+        const row=button.closest('.flowRow'),id=row.dataset.v,i=d.order.indexOf(id),to=button.classList.contains('up')?i-1:i+1;
+        if(to<0||to>=d.order.length)return;
+        [d.order[i],d.order[to]]=[d.order[to],d.order[i]];save();renderActivity(q);
+        const moved=$('activity').querySelector(`[data-v="${id}"]`);moved.querySelector(button.classList.contains('up')?'.up':'.down').focus();
+        $('orderStatus').textContent=`${q.cards.find(c=>c.id===id).title}: מקום ${to+1} מתוך 4`;
+      });
+    }else if(q.type==='multi'){
+      a.innerHTML=prompt+`<div class="movieSelection">${q.movies.map(movie=>`<label class="moviePick"><input type="checkbox" value="${movie.id}" ${d.movies.includes(movie.id)?'checked':''} ${solved?'disabled':''}><span><strong><bdi dir="ltr">${movie.name}</bdi></strong><span>ז׳אנר: <bdi dir="ltr">${movie.genre}</bdi></span><span>אורך: ${movie.length} דקות</span>${movie.fictional?'<small>דוגמה דמיונית לתרגול</small>':''}</span></label>`).join('')}</div>`;
+      a.querySelectorAll('input[type="checkbox"]').forEach(input=>input.onchange=()=>{d.movies=q.movies.filter(m=>a.querySelector(`input[value="${m.id}"]`).checked).map(m=>m.id);save();updateAvailability()});
+    }
+  }
+  function validate(q){
+    const d=draftFor(q);
+    if(q.type==='choice')return d.choice===q.answer;
+    if(q.parts)return q.parts.every((part,i)=>d.parts[i]===part.answer);
+    if(q.type==='order')return d.order.join('|')===q.answer.join('|');
+    return d.movies.length===q.answer.length&&q.answer.every(id=>d.movies.includes(id));
+  }
+  function submittedFor(q){
+    const d=draftFor(q);
+    if(q.type==='choice')return {choice:d.choice,text:q.options[d.choice]};
+    if(q.parts)return {parts:q.parts.map((part,i)=>({label:part.label,value:d.parts[i]}))};
+    if(q.type==='order')return {order:d.order.map(id=>({id,title:q.cards.find(c=>c.id===id).title}))};
+    return {movies:q.movies.filter(m=>d.movies.includes(m.id)).map(m=>({id:m.id,name:m.name}))};
+  }
+  function responseFor(q){
+    const d=draftFor(q);
+    if(q.type==='choice')return q.options[d.choice]||'';
+    if(q.parts)return q.parts.map((p,i)=>`${p.report||p.label}: ${d.parts[i]??'לא נבחר'}`).join('; ');
+    if(q.type==='order')return d.order.map(id=>q.cards.find(c=>c.id===id).title).join(' → ');
+    return q.movies.filter(m=>d.movies.includes(m.id)).map(m=>`${m.name} (${m.id})`).join(', ');
+  }
+  function expectedFor(q){
+    if(q.type==='choice')return q.options[q.answer];
+    if(q.parts)return q.parts.map(p=>`${p.report||p.label}: ${p.answer}`).join('; ');
+    if(q.type==='order')return q.answer.map(id=>q.cards.find(c=>c.id===id).title).join(' → ');
+    return q.movies.filter(m=>q.answer.includes(m.id)).map(m=>`${m.name} (${m.id})`).join(', ');
+  }
+  function showFeedback(q,ok){
+    $('feedback').className='labFeedback '+(ok?'good':'bad');$('feedback').innerHTML=rich((ok?'✓ ':'✕ ')+(ok?q.explain:q.wrong));
+    $('solution').innerHTML=ok?(q.output?codeBlock('פלט בטרמינל',q.output):q.correctedCode?codeBlock('הקוד המתוקן — main.py',q.correctedCode)+codeBlock('התוצאה בדפדפן לאחר התיקון','Shrek'):''):'';
+    $('solution').hidden=!ok||!$('solution').innerHTML;
+  }
   function check(){
-    const q=current(),prior=state.answers[q.id];
-    if(prior?.correct===true){$('nextQuestion').hidden=false;$('checkAnswer').hidden=true;return}
-    const ok=validate(q),answer=responseFor(q),attempts=(prior?.attempts||0)+1;
-    state.answers[q.id]={correct:ok,attempts,topic:q.topic,answer,expected:expectedFor(q),score:prior?prior.score:(ok?1:0),history:[...(prior?.history||[]),{number:attempts,answer,correct:ok}],historyMissing:prior?.historyMissing||0};
-    save();$('feedback').className='labFeedback '+(ok?'good':'bad');
-    $('feedback').textContent=ok?`✓ ${q.explain||'מעולה! המשיכו לשלב הבא.'}`:`✕ ${q.wrong||q.explain||'כמעט. קראו שוב את הרמז ובדקו את המקור של כל ערך.'}`;
-    $('nextQuestion').hidden=!ok;$('checkAnswer').hidden=ok;
-    renderProgressOnly();if(allAnswered())complete();
+    const q=current(),prior=state.answers[q.id];if(prior?.correct===true||!ready(q))return;
+    const ok=validate(q),answer=responseFor(q),attempts=(prior?.attempts||0)+1,submitted=submittedFor(q);
+    state.answers[q.id]={correct:ok,attempts,topic:q.topic,answer,expected:expectedFor(q),score:prior?prior.score:(ok?1:0),firstAnswer:prior?prior.firstAnswer:answer,firstCorrect:prior?prior.firstCorrect:ok,history:[...(prior?.history||[]),{number:attempts,answer,correct:ok,submitted}],submitted,historyMissing:0};
+    save();renderProgressOnly();renderTabs();renderActivity(q);renderCode(q);updateAvailability();showFeedback(q,ok);
+    $('checkAnswer').hidden=ok;$('nextQuestion').hidden=!ok;$('feedback').focus();
+    // Keep successful feedback and any terminal output visible until Next.
   }
-  function renderProgressOnly(){const done=questions.filter(q=>state.answers[q.id]?.correct===true).length,score=Object.values(state.answers).reduce((n,x)=>n+(x.score||0),0);$('progressText').textContent=`${done} / ${questions.length} הושלמו`;$('scoreText').textContent=`${score} נקודות`;$('progressBar').style.width=`${done/questions.length*100}%`}
-  function next(){if(state.answers[current().id]?.correct!==true)return;if(state.index<questions.length-1){state.index++;save();render()}else complete()}
-  function clean(v,n){return String(v??'').slice(0,n)}
+  function renderProgressOnly(){const done=questions.filter(q=>state.answers[q.id]?.correct===true).length,score=Object.values(state.answers).reduce((n,x)=>n+(x.score||0),0);$('progressText').textContent=`הושלמו ${done} מתוך 7`;$('scoreText').textContent=`${score} נקודות`;$('progressBar').style.width=`${done/7*100}%`;$('progressBar').parentElement.setAttribute('aria-valuenow',done)}
+  function next(){if(state.answers[current().id]?.correct!==true)return;if(state.index<6){state.index++;save();render();$('questionTitle').focus()}else complete()}
   function allAnswered(){return questions.every(q=>state.answers[q.id]?.correct===true)}
   function resultSummary(){
     const results=questions.map(q=>({...state.answers[q.id],id:q.id,title:q.title,topic:q.topic,question:q.prompt||q.promptParts?.join('___')||q.title}));
