@@ -194,11 +194,14 @@ def choice():
     return state.drafts[q.id];
   }
   function codeBlock(label,text){return `<section class="approvedCode"><h3>${rich(label)}</h3><pre class="codeBox" dir="ltr"><code>${esc(text)}</code></pre></section>`}
+  function q2Badge(index,value){
+    return `<span class="q2FieldBadge q2FieldBadge--${index===0?'name':'value'}" dir="ltr"><span>${index===0?'①':'②'}</span>${value===undefined?'':` <span>${esc(value)}</span>`}</span>`;
+  }
   function renderCode(q){
     const d=draftFor(q);
     $('projectExamples').innerHTML=q.code.map(block=>{
       let text=block.text;
-      if(q.id==='html_name')text=text.replace('① ???',d.parts[0]??'① ???').replace('② ???',d.parts[1]??'② ???');
+      if(q.id==='html_name')return codeBlock(block.file,text).replace('① ???',q2Badge(0,d.parts[0]??'???')).replace('② ???',q2Badge(1,d.parts[1]??'???'));
       if(q.id==='request_key'&&d.parts[2]!=null)text=text.replace('???',d.parts[2]);
       return codeBlock(block.file,text);
     }).join('');
@@ -224,7 +227,8 @@ def choice():
   }
   function partChoices(q,part,i){
     const d=draftFor(q),solved=state.answers[q.id]?.correct===true;
-    return `<fieldset class="matchRow" data-part="${i}" ${solved?'disabled':''}><legend>${rich(part.label)}</legend><div class="matchChoices">${part.options.map((value,n)=>`<label class="answerChoice"><input type="radio" name="part-${q.id}-${i}" value="${esc(value)}" ${d.parts[i]===value?'checked':''}><span><bdi dir="auto">${esc(part.quoted?JSON.stringify(value):value)}</bdi></span></label>`).join('')}</div></fieldset>`;
+    const heading=q.id==='html_name'?q2Badge(i)+rich(part.label.slice(1)):rich(part.label);
+    return `<fieldset class="matchRow" data-part="${i}" ${solved?'disabled':''}><legend>${heading}</legend><div class="matchChoices">${part.options.map((value,n)=>`<label class="answerChoice"><input type="radio" name="part-${q.id}-${i}" value="${esc(value)}" ${d.parts[i]===value?'checked':''}><span><bdi dir="auto">${esc(part.quoted?JSON.stringify(value):value)}</bdi></span></label>`).join('')}</div></fieldset>`;
   }
   function renderActivity(q){
     const a=$('activity'),d=draftFor(q),solved=state.answers[q.id]?.correct===true;

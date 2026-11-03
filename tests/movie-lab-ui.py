@@ -84,7 +84,7 @@ with sync_playwright() as p:
                 # Wrong feedback must not reveal the success-only output/corrected code.
                 assert page.locator('#solution').inner_html()==''
             answer(i,True)
-            if i==1:assert 'name="genre"' in page.locator('#projectExamples').inner_text() and 'value="comedy"' in page.locator('#projectExamples').inner_text()
+            if i==1:assert 'name="① genre"' in page.locator('#projectExamples').text_content() and 'value="② comedy"' in page.locator('#projectExamples').text_content()
             if i==3:assert 'request.form["genre"]' in page.locator('#projectExamples').inner_text()
             if i==4:assert page.locator('#jsonPreview').inner_text()=='print(movie["length"])'
             page.locator('#checkAnswer').click()
